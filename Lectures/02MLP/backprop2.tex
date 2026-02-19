@@ -1,0 +1,106 @@
+\input ../SlidePreamble
+\input ../preamble
+
+\begin{document}
+
+{\Huge
+  
+  \centerline{\bf TTIC 31230, Fundamentals of Deep Learning}
+  \bigskip
+  \centerline{David McAllester, Autumn 2024}
+  \vfill
+  \vfill
+  \centerline{\bf Backpropagation with Arrays and Tensors}
+  \vfill
+  \vfill
+
+
+\slide{Program Values as Objects}
+
+\vfill
+In a framework the program (or deep model) variables are objects in the sense of object oriented programming or Python.
+
+\vfill
+Each object $x$ stores its input objects in its instance variables and has an instance variable $x.\mathrm{value}$ storing its value.
+
+\vfill
+The instance variable $x.\mathrm{value}$ is filled by sending $x$ a forward message after its inputs have computed their values.
+
+\vfill
+{\color{red} Each object $x$ has an instance variable $x.\grad$ storing $\partial {\cal L}/\partial x$.}
+
+\vfill
+$x.\grad$ is filled by the backward methods of objects $y$ that
+use $x$ as an input.  The backward method for $y$ is called after $y.\grad$ has been filled and adds into $x.\grad$ for each input $x$.
+
+\slide{Scalar Products}
+
+Consider a scalar product $z = xy$.
+
+\vfill
+The forward method for $z$ computes.
+
+$$z.\mathrm{value} = x.\mathrm{value}*y.\mathrm{value}$$
+
+\vfill
+The backward method for $z$ computes
+\begin{eqnarray*}
+x.\grad & \pluseq & z.\grad * y.\mathrm{value} \\
+y.\grad & \pluseq & x.\mathrm{value} * z.\grad
+\end{eqnarray*}
+
+\vfill
+I call this the {\bf ``swap rule''}.  To get the gradient of $x$ we swap $x$ and $z$.  To get the gradient of $y$ we swap $y$ and $z$.
+The swap rule will also apply to arrays and tensors.
+
+\slide{Handling Arrays}
+
+Consider an inner product between vectors
+$$z = x^\top y$$
+
+\vfill
+In this case $z.\mathrm{forward}$ does
+$$z.\mathrm{value} = 0$$
+$$\mathrm{for}\;i\;\;z.\mathrm{value} \;\pluseq\;x.\mathrm{value}[i]*y.\mathrm{value}[i]$$
+
+\vfill
+The backward method for $z$  treats each $\pluseq$ instruction separately and applies the swap rule.
+$$\mathrm{for}\;i\;\;x.\grad[i] \;\pluseq\;z.\grad * y.\mathrm{value}[i]$$
+$$\mathrm{for}\;i\;\;y.\grad[i] \;\pluseq\;x.\mathrm{value}[i]*z.\grad$$
+
+
+\slide{Handling Arrays}
+Now consider multiplying a vector $x$ by a matrix $W$.
+$$y = Wx$$
+
+\vfill
+In this case case $y.\mathrm{forward}$ does
+$$\mathrm{for}\;j\;\;y.\mathrm{value}[j] = 0$$
+$$\mathrm{for}\;i,j\;\;y.\mathrm{value}[j] \;\pluseq\;W.\mathrm{value}[j,i]*x.\mathrm{value}[i]$$
+
+\vfill
+The backward procedure $y.\mathrm{backward}$ treats each individual $\pluseq$ as a scalar product and applies the swap rule.
+$$\mathrm{for}\;i,j\;\;x.\grad[i] \;\pluseq\;W.\mathrm{value}[j,i]*y.\grad[j]$$
+$$\mathrm{for}\;i,j\;\;W.\grad[j,i] \;\pluseq\;y.\grad[j]*x.\mathrm{value}[i]$$
+
+\slide{General Tensor Operations}
+
+In practice all deep learning source code can be written using scalar assignments and loops over scalar assignments.
+For example:
+
+$$\begin{array}{rrcl}
+\mathrm{for}\; h,i,j,k & Y[h,i,j] & \;\pluseq\; & A[h,i,k]\;B[h,j,k] \\
+\end{array}$$
+
+\vfill
+has backpropagation loops given by the swap rule
+
+$$\begin{array}{rrcl}
+\mathrm{for}\;h,i,j,k & A.\grad[h,i,k] & \pluseq & Y.\grad[h,i,j] \;B.\mathrm{value}[h,j,k] \\
+\mathrm{for}\;h,i,j,k & B.\grad[h,j,k] & \pluseq & A.\mathrm{value}[h,i,k]\;Y.\grad[h,i,j]
+\end{array}$$
+
+\slide{END}
+}
+
+\end{document}

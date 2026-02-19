@@ -1,0 +1,114 @@
+\input ../SlidePreamble
+\input ../preamble
+
+
+\begin{document}
+
+{\Huge
+
+  \centerline{\bf TTIC 31230, Fundamentals of Deep Learning}
+  \bigskip
+  \centerline{David McAllester, Autumn 2022}
+  \vfill
+  \vfil
+  \centerline{Markovian VAEs}
+  \vfill
+  \vfill
+
+\slide{Markovian VAEs}
+
+A diffusion models computes and inverts a sequence
+
+\vfill
+\centerline{\includegraphics[width = 7in]{\images/DiffSequence}}
+
+\vfill
+So does an autoregressive language model
+
+\vfill
+{\huge
+\centerline{{\color{red} [Sally talked to John]} $\stackrel{\rightarrow}{\leftarrow}$ {\color{red} [Sally talked to]}
+$\stackrel{\rightarrow}{\leftarrow}$ {\color{red}[Sally talked]} $\stackrel{\rightarrow}{\leftarrow}$ {\color{red}[Sally]}}
+}
+
+
+\slide{Markovian VAEs}
+
+
+\centerline{\includegraphics[width = 7in]{\images/DiffSequence}}
+
+\vfill
+{\huge
+\centerline{{\color{red} [Sally talked to John]} $\stackrel{\rightarrow}{\leftarrow}$ {\color{red} [Sally talked to]}
+$\stackrel{\rightarrow}{\leftarrow}$ {\color{red}[Sally talked]} $\stackrel{\rightarrow}{\leftarrow}$ {\color{red}[Sally]}}
+}
+
+\vfill
+\centerline{$y \stackrel{\rightarrow}{\leftarrow} z_1  \stackrel{\rightarrow}{\leftarrow} \cdots \stackrel{\rightarrow}{\leftarrow} z_N$}
+
+\slide{Markovian VAEs}
+\centerline{$y \stackrel{\rightarrow}{\leftarrow} z_1  \stackrel{\rightarrow}{\leftarrow} \cdots \stackrel{\rightarrow}{\leftarrow} z_N$}
+
+\vfill
+{\bf Encoder}: $\pop(y)$, $P_\enc(z_1|y)$, and $P_\enc(z_{\ell+1}|z_\ell)$.
+
+
+\vfill
+{\bf Generator}: $P_\pri(z_N)$, $P_\gen(z_{\ell-1}|z_\ell)$, $P_\gen(y|z_1)$.
+
+\vfill
+The encoder and the decoder define distributions $P_\enc(y,\ldots,z_N)$ and $P_\gen(y,\ldots,z_N)$ respectively.
+
+\slide{VAE Review}
+
+A variational autoencoder (VAE) has only $y$ and $z$.
+
+\begin{eqnarray*}
+P_\enc(y,z) & = & \pop(y)P_\enc(z|y) \\
+\\
+P_\gen(y,z) & = & P_\pri(z)P_\gen(y|z)
+\end{eqnarray*}
+
+
+\slide{The Single Layer ELBO}
+
+{\huge
+
+\begin{eqnarray*}
+ H_\pop(y) & = & E_\enc\left[ -\ln \frac{P_\enc(y)P_\enc(z|y)}{P_\enc(z|y)}\right] \\
+  \\
+  \\
+  & = & E_\enc\left[-\ln \frac{P_{\color{red} \enc}(z)P_{\color{red} \enc}(y|z)}{P_\enc(z|y)}\right] \\
+  \\
+  \\
+  & {\color{red} \leq} & E_\enc\left[ -\ln \frac{P_{\color{red} \gen}(z)P_{\color{red} \gen}(y|z)}{P_\enc(z|y)}\right] \;\;\mbox{cross-entropy bounds entropy} \\
+  \\
+  \\
+  & = & E_\enc\;\;KL(P_\enc(z|y),\;P_{\gen}(z)) + E_\enc[-\ln P_{ \gen}(y|z)]
+\end{eqnarray*}
+}
+
+\slide{The Markovian ELBO}
+
+{\Large
+\begin{eqnarray*}
+H(y) & = & E_\enc\left[- \ln\frac{P_\enc(y)P_\enc(z_1,\ldots,z_N|y)}{P_\enc(z_1,\ldots,z_N|y)}\right]\\
+  \\
+  \\
+  & = & E_\enc\left[ - \ln\frac{P_{\color{red} \enc}(y|z_1)P_{\color{red} \enc}(z_1|z_2)\cdots P_{\color{red} \enc}(z_{N-1}|z_N)P_{\color{red} \enc}(z_N)}
+  {P_\enc(z_1|z_2,y)\cdots P_\enc(z_{N-1}|z_N,y)P_\enc(z_N|y)}\right] \\
+   \\
+   \\
+  & {\color{red} \leq} & E_\enc\left[ - \ln\frac{P_{\color{red} \gen}(y|z_1)P_{\color{red} \gen}(z_1|z_2)\cdots P_{\color{red} \gen}(z_{N-1}|z_N)P_{\color{red} \gen}(z_N)}
+  {P_\enc(z_1|z_2,y)\cdots P_\enc(z_{N-1}|z_N,y)P_\enc(z_N|y)}\right] \\
+\\
+\\
+ & = & \left\{\begin{array}{l}E_\enc\;[-\ln P_\gen(y|z_1)]
+                             \\ \\ + \sum_{i=2}^N  \; E_\enc\; KL(P_\enc(z_{i-1}|z_i,y),\;P_\gen(z_{i-1}|z_i)) \\
+                             \\ + E_\enc\; KL(P_\enc(Z_N|y),p_\gen(Z_N))\end{array}\right.
+\end{eqnarray*}
+}
+
+\slide{END}
+
+\end{document}

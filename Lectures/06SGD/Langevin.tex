@@ -1,0 +1,701 @@
+\input ../SlidePreamble
+\input ../preamble
+
+\begin{document}
+
+{\Huge
+
+\centerline{\bf TTIC 31230, Fundamentals of Deep Learning}
+\bigskip
+\centerline{David McAllester, Autumn 2023}
+\vfill
+\centerline{\bf Continuous Time Models of SGD}
+\vfill
+\vfill
+\centerline{\bf Gradient Flow}
+\vfill
+\centerline{\bf The Diffusion SDE}
+\vfill
+\centerline{\bf The Langevin SDE}
+\vfill
+\centerline{\bf General SDEs}
+\vfill
+\centerline{\bf The SGD SDE}
+
+\slide{Gradient Flow}
+
+Gradient flow is a non-stochastic ({\color{red} deterministic}) model of {\color{red} stochastic} gradient descent (SGD).
+
+\vfill
+Gradient flow is defined by the {\color{red} total gradient} differential equation
+
+$${\color{red} \frac{d \Phi}{d t} = - g(\Phi) \;\;\;\;\;\; g(\Phi) = \nabla_\Phi\; E_{(x,y) \sim \mathrm{Train}}\;{\cal L}(\Phi,x,y)}$$
+
+\vfill
+We let $\Phi(t)$ be the solution to this differential equation satisfying $\Phi(0) = \Phi_{\mathrm{init}}$.
+
+\slide{Gradient Flow}
+$${\color{red} \frac{d \Phi}{d t} = - g(\Phi)}$$
+
+\vfill
+For small values of $\Delta t$ this differential equation can be approximated by
+
+\vfill
+$${\color{red} \Delta \Phi = - g(\Phi)\Delta t}$$
+
+\slide{Time as the Sum of the Learning Rates}
+
+Consider the update.
+
+
+\begin{eqnarray*}
+d \Phi & = & - g(\Phi)dt \;\;\;\;\;\;\; \mathrm{Gadient~Flow} \\
+\\
+\Phi_{t+\Delta t} & \approx & \Phi_t - g\Delta t \\
+\\
+\Phi_{t+\eta} & \approx & \Phi_t - \eta_t\;\hat{g} \;\;\;\;\;\; \mathrm{SGD} \\
+\end{eqnarray*}
+
+We will show that as $\eta_t \rightarrow 0$ we have that SGD converges to Gradient Flow.
+
+\slide{Gradient Flow and SGD}
+Consider a sequence of model parameters $\Phi_1$, $\ldots$, $\Phi_N$ produced by SGD with
+$$\Phi_{i+1} = \Phi_i - \eta \hat{g}_i$$
+and where $\hat{g}_i$ is the gradient of the $i$th randomly selected training point.
+
+\vfill
+Take $\eta \rightarrow 0$ and $N \rightarrow \infty$ using $N = t/\eta$.  We will show that in this limit for SGD we have that $\Phi_N$ converges to $\Phi(t)$
+as defined by gradient flow.
+
+\slide{Gradient Flow and SGD}
+For $\Phi_{i+1} = \Phi_i - \eta \hat{g}_i$ we divide $\Phi_1$, $\ldots$, $\Phi_N$ into $\sqrt{N}$ blocks.
+$$(\Phi_1,\dots,\Phi_{\sqrt{N}})\;(\Phi_{\sqrt{N}+1},\ldots,\Phi_{2\sqrt{N}})\;\cdots\;(\Phi_{T-\sqrt{N}+1},\ldots,\Phi_N)$$
+
+\vfill
+For $\eta \rightarrow 0$ and $N = t/\eta$ we have $\eta\sqrt{N} \rightarrow 0$ which implies
+$$\Phi_{\sqrt{N}} \sim \Phi_0 - \eta\sqrt{N} g$$
+where $g$ is the average (non-stochastic)
+gradient.
+
+\vfill
+Since the gradients within each block become non-stochastic, we are back to gradient flow.
+
+
+\slide{Stochastic Differential Equations (SDEs)}
+
+SDEs are important in deep learning for understanding SGD, incorporating Bayesian priors into SGD,
+and in modern diffusion models.
+
+\vfill
+We will start with the simplest SDE: Brownian motion.  Brownian motion is the SDE used in diffusion models.
+
+\slide{Diffusion Models: Brownian Motion}
+
+Consider a discrete-time process $z(0),z(1),z(2),z(3),\ldots$ with $z(n)\in \mathbb{R}^d$ defined by
+\begin{eqnarray*}
+  z(n+1) & = & z(n) + \sigma\epsilon,\;\;\;\epsilon \sim {\cal N}(0,I)
+\end{eqnarray*}
+
+\vfill
+We can sample from $z(n)$ using
+
+\begin{eqnarray*}
+  z(n) & = & z(0) + \sigma\epsilon\sqrt{n} ,\;\;\;\epsilon \sim {\cal N}(0,I)
+\end{eqnarray*}
+
+\slide{Brownian Motion}
+Fix a numerical time step $\Delta t$ and consider a discrete-time process $z(0)$, $z(\Delta t)$, $z(2\Delta t)$, $z(3\Delta t)$ $\ldots$
+
+{\huge
+\begin{eqnarray*}
+  z(t+\Delta t) & = & z(t) + \sigma\epsilon\sqrt{\Delta t},\;\;\;\epsilon\sim {\cal N}(0,I) \\
+  \\
+  z(t+n\Delta t) & = & z(t) + \sigma\epsilon\sqrt{n\Delta t},\;\;\;\epsilon\sim {\cal N}(0,I) \\    
+\end{eqnarray*}
+}
+We now take the limit of this numerical simulation as $\Delta t \rightarrow 0$.
+
+In this limit we can sample directly from $z(t)$ using
+
+$$z(t + \Delta t) = z(t) + \sigma\epsilon \sqrt{\Delta t}\;\;\;\epsilon \sim {\cal N}(0,I)$$
+
+\slide{Sampling from a Bayesian Posterior: Langevin Dynamics}
+
+{\huge
+$$\train = (x_1,y_1),\ldots,(x_n,y_n)$$
+
+\vfill
+The parameters $\Phi$ determine $P_\Phi(y|x)$.
+
+\begin{eqnarray*}
+p(\Phi|\train) & = & \frac{p(\Phi)p(\train|\Phi)}{p(\train)} \\
+\\
+\\
+& = & \frac{p(\Phi)p(x_1,\ldots,x_n)P_\Phi(y_1,\ldots,y_n|x_1,\ldots,x_n)}{p(x_1,\ldots,x_n)P(y_1,\ldots y_n|x_1,\ldots x_n)} \\
+\\
+\\
+& = & \frac{p(\Phi)P_\Phi(y_1,\ldots,y_n|x_1,\ldots,x_n)}{P(y_1,\ldots y_n|x_1,\ldots x_n)}
+\end{eqnarray*}
+}
+
+\slide{A Bayesian Interpretation of Langevin Dynamics}
+
+$$\train = (x_1,y_1),\ldots,(x_n,y_n)$$
+
+\vfill
+{\huge
+\begin{eqnarray*}
+p(\Phi|\train) & = & \frac{p(\Phi)P_\Phi(y_1,\ldots,y_n|x_1,\ldots,x_n)}{P(y_1,\ldots y_n|x_1,\ldots x_n)}
+\end{eqnarray*}
+}
+
+\vfill
+The denominator does does not depend on $\Phi$ which implies
+
+$$p(\Phi|\train) \propto p(\Phi)\prod_i P_\Phi(y_i|x_i)$$
+
+
+\slide{A Bayesian Interpretation of Langevin Dynamics}
+
+{\huge
+\begin{eqnarray*}
+p(\Phi|\train) & \propto & p(\Phi)\prod_i P_\Phi(y_i|x_i) \\
+\\
+\ln p(\Phi|\train) & = & \sum_i \ln P_\Phi(y_i|x_i) + \ln p(\Phi) + C
+\end{eqnarray*}
+
+\vfill
+\begin{eqnarray*}
+\mathrm{Define}\;\;{\cal L}(\Phi) & = & \frac{1}{n} \sum_i -\ln P_\Phi(y_i|x_i) - \frac{1}{n} \ln p(\Phi) \\
+\\
+& = & E_{(x,y) \sim \train}\left[ -\ln P_\Phi(y|x)\right] - \frac{1}{n} \ln p(\Phi)
+\end{eqnarray*}
+
+\vfill
+\centerline{This Gives{\color{red} $~\;\;\;p(\Phi|\train) = \frac{1}{Z}\exp\left(-n{\cal L}(\Phi)\right)$}}
+}
+
+\slidetwo{Sampling from a Bayesian Posterior:}{Langevin Dynamics}
+
+Consider gradient flow.
+
+\begin{eqnarray*}
+\frac{d\Phi(t)}{dt} & = & - g(\Phi) \\
+\\
+g(\Phi) & = & \nabla_\Phi\;{\cal L}(\Phi) \\
+\\
+{\cal L}(\Phi) & = & E_{(x,y) \sim \pop}\;{\cal L}(\Phi,x,y)
+\end{eqnarray*}
+
+\slide{The Langevin SDE}
+
+In the Langevin SDE we add Gaussian noise to gradient flow.
+
+\begin{eqnarray*}
+\Phi(t + \Delta t) & = & \Phi(t) - g\Delta t + \sigma \epsilon \sqrt{\Delta t},\;\;\;\epsilon \sim {\cal N}(0,I)
+\end{eqnarray*}
+
+\vfill
+We will show that the stationary distribution of Langevin Dynamics models a Bayesian posterior probability distrbution on
+the model parameters where $\sigma$ acts as a temperature parameter.
+
+
+\slide{The Langevin SDE}
+
+\begin{eqnarray*}
+\Phi(t + \Delta t) & = & \Phi(t) - g(\Phi)\Delta t + \sigma\epsilon \sqrt{\Delta t},\;\;\;\epsilon \sim {\cal N}(0,I)
+\end{eqnarray*}
+
+Let $p(\Phi)$ be a probability density on the parameter space $\Phi$.
+
+\vfill
+The density $p(\Phi)$ defines a gradient flow and a diffusion flow.
+
+\begin{eqnarray*}
+\mbox{gradient flow} & = & - p(\Phi)g(\Phi) \\
+\\
+\mbox{diffusion flow} & = & - \frac{1}{2} \;\sigma^2\;\nabla_\Phi\; p(\Phi)
+\end{eqnarray*}
+
+\vfill
+The expression for the diffusion flow follows from the Fokker-Planck equation. A derivation of the diffusion flow expression from first princple is given in the appendix.
+
+\slide{The Langevin SDE}
+
+\begin{eqnarray*}
+\mbox{gradient flow} & = & - p(\Phi)g(\Phi) \\
+\\
+\mbox{diffusion flow} & = & - \frac{1}{2} \;\sigma^2\;\nabla_\Phi(p(\Phi))
+\end{eqnarray*}
+
+\vfill
+For the stationary distribution these two flows cancel each other out.
+In one dimension we have
+
+$$\frac{1}{2} \sigma^2 \nabla_\Phi\; {p} = - p\nabla_\Phi {\cal L}$$
+
+\slide{The Langevin Stationary Distribution}
+
+\vspace{-2ex}
+\begin{eqnarray*}
+\frac{1}{2} \sigma^2 \nabla_\Phi\; {p} & = & - p\nabla_\Phi {\cal L} \\
+\\
+\frac{1}{2} \sigma^2 \frac{\nabla_\Phi\;p}{p} & = & - \nabla_\Phi {\cal L} \\
+\\
+\frac{1}{2} \sigma^2 \left(\nabla_\Phi \ln p\right) & = &  \nabla_\Phi (- {\cal L}) \\
+\\
+\frac{1}{2} \sigma^2 \ln p & = & - {\cal L} + C \\
+\\
+{\color{red} p(\Phi)} & {\color{red} =} & {\color{red} \frac{1}{Z}\exp\left(\frac{-2{\cal L}(\Phi)}{\sigma^2}\right)}
+\end{eqnarray*}
+
+
+\slide{A Bayesian Interpretation of Langevin Dynamics}
+
+$$p(\Phi|\train) = \frac{1}{Z}e^{-n{\cal L}(\Phi)}$$
+
+\vfill
+$$p_{\mathrm{Langevin}}(\Phi) = \frac{1}{Z}\exp\left(\frac{-2{\cal L}(\Phi)}{\sigma^2}\right)$$
+
+\vfill
+Setting $\sigma^2 = \frac{1}{2n}$ gives
+
+\vfill
+$$p_{\mathrm{Langevin}}(\Phi) = p(\Phi|\train)$$
+
+\slide{A General SDE}
+
+{\huge
+\begin{eqnarray*}
+x(t + \Delta t) &  =  & x(t) + \mu(x,t)\Delta t + \sigma(x,t)\epsilon \sqrt{\Delta t},\;\;\;\epsilon \sim {\cal N}(0,I)\;\;\;(1)
+ \end{eqnarray*}
+}
+\vfill
+Here $\sigma(x,t)$ is a matrix.
+
+\vfill
+This is conventionally written as
+
+$$dx = \mu(x,t)dt + \sigma(x,t)dB\;\;\;\;(2)$$
+
+\vfill
+where $B$ denotes a Weiner process (simple diffusion, aka Brownian motion)
+
+\vfill
+I find (1) more intuitive than (2) but they are the same thing.
+
+\slide{The SGD SDE}
+
+\vfill
+We now consider SGD
+
+$$\Phi_{i+1} = \Phi_i - \eta\hat{g}_i$$
+
+\vfill
+We consider $\Phi_i$ and $\Phi_{i+N}$ with $N$ small enough that
+
+$$\Phi_{i+N} \approx \Phi_i$$.
+
+\slide{Gradient Noise}
+
+$$\hat{g} = g(\Phi) + (\hat{g} - g(\Phi))$$
+
+\vfill
+$\hat{g} - g(\Phi)$ has zero mean.
+
+\begin{eqnarray*}
+\Phi_{i+N} & \approx & \Phi_i - \eta N g(\Phi)  - \eta \sum_{j=1}^N (\hat{g}_i - g(\Phi))
+\end{eqnarray*}
+
+\vfill
+We pick $N$ large enough that $\sum_{j=1}^N (\hat{g}_i - g(\Phi))$ is approximately Gaussian.
+
+\slide{Gradient Noise}
+
+\begin{eqnarray*}
+\Phi_{i+N} & \approx & \Phi_i - \eta N g(\Phi)  - \eta \sum_{j=1}^N (\hat{g}_i - g(\Phi)) \\
+\\
+& \approx & \Phi_i - \eta N g(\Phi)  - \eta \sqrt{N} \epsilon,\;\;\; \epsilon \sim {\cal N}(0,\Sigma)
+\end{eqnarray*}
+
+\vfill
+Now define $\Delta t = N\eta$ or $N = \Delta t/\eta$.
+
+\begin{eqnarray*}
+\Phi(t+ \Delta t) & \approx & \Phi(t) - g(\Phi)\Delta t +  \eta\epsilon \sqrt{ \Delta t/\eta},\;\;\; \epsilon \sim {\cal N}(0,\Sigma) \\
+\\
+& = & \Phi(t) - g(\Phi)\Delta t +  \sqrt{\eta}\epsilon \sqrt{\Delta t},\;\;\; \epsilon \sim {\cal N}(0,\Sigma)
+\end{eqnarray*}
+
+
+\slide{The SGD SDE}
+
+\begin{eqnarray*}
+\Phi(t+ \Delta t) & \approx & \Phi(t) - g(\Phi)\Delta t +  \sqrt{\eta}\epsilon \sqrt{ \Delta t},\;\;\; \epsilon \sim {\cal N}(0,\Sigma) \\
+\\
+\\
+& = & \Phi(t) - g(\Phi)\Delta t +  \sqrt{\eta}\sigma(\Phi) \epsilon \sqrt{ \Delta t},\;\;\; \epsilon \sim {\cal N}(0,I) 
+\end{eqnarray*}
+
+\vfill
+Here the matrix $\sigma(\Phi)$ is the square root of the covariance matrix $\Sigma(\Phi)$.
+
+\slide{The SGD SDE in One Dimension}
+
+\begin{eqnarray*}
+\Phi(t + \Delta t) & = & \Phi(t) -g(\Phi)\Delta t + \sqrt{\eta} \sigma(\Phi) \epsilon\sqrt{\Delta t}
+\end{eqnarray*}
+
+\vfill
+In one dimension, if the gradient noise $\sigma(\Phi)$ is constant, then the SGD SDE has the same form as Langevin dynamics and we get.
+
+\begin{eqnarray*}
+p(x) & = & \frac{1}{Z} \exp\left(\frac{-2{\cal L}(x)}{ \eta \sigma^2}\right)
+\end{eqnarray*}
+
+\vfill
+This is Gibbs and provides an interpretation of the learning rate as temperature.
+
+
+\slide{The SGD SDE in Higher Dimension}
+
+\begin{eqnarray*}
+\Phi(t + \Delta t) & = & \Phi(t) -g(\Phi)\Delta t + \sqrt{\eta} \sigma(\Phi) \epsilon\sqrt{\Delta t}
+\end{eqnarray*}
+
+\vfill
+This is almost the general case of an SDE.
+
+\vfill
+Here $g(\Phi)$ is the gradient of a scalar function.  This is not true for a general SDE.
+
+\vfill
+But the matrix $\sigma(\Phi)$ is arbitrary.
+
+\vfill
+Here the learning rate $\eta$ controls the level of noise but we do not in general have a Gibbs distribution.
+
+
+\slide{The SGD SDE, A Counter Example}
+
+If we have two dimensions $x$ and $y$ where the loss separates as ${\cal L}(x,y) = {\cal L}(x) + {\cal L}(y)$, and the matrix $\sigma(\Phi)$ is constant and diagonal,
+each dimension behaves as an independent one dimensional SGD and we get.
+
+\begin{eqnarray*}
+p(x,y) & = & \frac{1}{Z} \exp\left(\frac{-2{\cal L}(x)}{ \eta \sigma_x^2} + \frac{-2{\cal L}(y)}{\eta \sigma_y^2}\right)
+\end{eqnarray*}
+
+\vfill
+This is not Gibbs.
+
+\slide{Langevin-Adaptive SGD}
+
+Consider SGD where the update dirction is determined by a matrix $D$.
+
+$$\Phi_{i+1} = \Phi_i - \eta D \hat{g}_i$$
+
+$D$ defines a linear map from dual vectors to primal vectors.
+
+\vfill
+The function defined by $D$ has a meaning indepent of the choice of coordinates.
+
+
+\slide{Coordinate Independent Formulation of Gradient Noise}
+
+We can define the covariance matrix of the noise as
+
+\vfill
+$$\Sigma(\Phi) = E_{\hat{g}}\;(\hat{g}-g)(\hat{g}_i-g)^\top$$
+
+\vfill
+The gradient noise covariance matrix $\Sigma(\Phi)$ defines a linear map from the
+primal vectors to dual vectors (independent of coordinates).
+
+\vfill
+$$\Sigma(\Phi) \Delta \Phi = E_{\hat{g}}\; (\hat{g}-g)((\hat{g}-g)^\top \Delta \Phi)$$
+
+
+\slide{Solving for $D$ to Get Langevin}
+
+$$\Phi_{i+1} = \Phi_i - \eta D \hat{g}_i$$
+
+\vfill
+Setting $\Delta t = N\eta$ we get
+
+
+$$\Phi(t+ \Delta t) = \Phi(t) - Dg \Delta t + \sqrt{\eta}D\epsilon\sqrt{\Delta t},\;\;\;\epsilon \sim {\cal N}(0,\Sigma(\Phi))$$
+
+\vfill
+Here the noise vector $\epsilon$ is a dual vector.
+
+\slide{Solving for $D$}
+
+For a given probability density $p(\Phi)$ over the parameters $\Phi$ the flows are
+
+\begin{eqnarray*}
+\mbox{gradient flow} & = & -p D g \\
+\\
+\mbox{diffusion flow} & = & -\frac{1}{2} \eta D \Sigma(\Phi) D \nabla_\Phi p
+\end{eqnarray*}
+
+\vfill
+These are vectors in parameter space that are independent of the choice of coordinates.
+
+\slide{Solving for $D$}
+
+\begin{eqnarray*}
+\mbox{gradient flow} & = & -p D g \\
+\\
+\mbox{diffusion flow} & = & -\frac{1}{2} \eta D \Sigma(\Phi) D \nabla_\Phi p
+\end{eqnarray*}
+
+\vfill
+Detailed Balance:
+
+\vfill
+\vspace{-2ex}
+\begin{eqnarray*}
+\frac{1}{2} \eta D\Sigma(\Phi) D \nabla_\Phi\; {p} & = & - p D \nabla_\Phi {\cal L}
+\end{eqnarray*}
+
+\slide{Solving for $D$}
+
+\vspace{-2ex}
+\begin{eqnarray*}
+\frac{1}{2} \eta D\Sigma(\Phi) D \nabla_\Phi\; {p} & = & - p D \nabla_\Phi {\cal L} \\
+\\
+\frac{1}{2} \eta D \Sigma(\Phi)  D \frac{\nabla_\Phi\;p}{p} & = & - D \nabla_\Phi {\cal L} \\
+\\
+\frac{1}{2} \eta D \Sigma(\Phi) D \left(\nabla_\Phi \ln p\right) & = &  - D \nabla_\Phi {\cal L}
+\end{eqnarray*}
+
+\vfill
+Setting {\color{red} $D = \Sigma(\Phi)^{-1}$} gives
+
+\vfill
+$$\frac{1}{2} \eta \Sigma(\Phi)^{-1} \left(\nabla_\Phi \ln p\right) = - \Sigma(\Phi)^{-1} \nabla_\Phi {\cal L}$$
+
+\slide{The Gibbs distribution}
+
+$$\frac{1}{2} \eta \Sigma(\Phi)^{-1} \left(\nabla_\Phi \ln p\right) = - \Sigma(\Phi)^{-1} \nabla_\Phi {\cal L}$$
+
+\vfill
+The factors of $\Sigma(\Phi)^{-1}$ now cancel (we can multiply both sides by $\Sigma(\Phi)$) and we get
+
+\vfill
+$$\frac{1}{2} \eta \left(\nabla_\Phi \ln p\right)  =  - \nabla_\Phi {\cal L}$$
+
+\vfill
+This equation is independent of coordinates.
+
+\slide{The Gibbs Distribution}
+
+$$\frac{1}{2} \eta \left(\nabla_\Phi \ln p\right)  =  - \nabla_\Phi {\cal L}$$
+
+\vfill
+$$p(\Phi) = \frac{1}{Z} \exp\left(\frac{-2{\cal L}(\Phi)}{\eta}\right)$$
+
+\slide{The Gibbs Distribution}
+
+For the adaptive update
+
+\vfill
+$$\Phi_{i+1} = \Phi_{i} - \eta \Sigma(\Phi)^{-1} \hat{g}_i$$
+
+\vfill
+we have a stationary distribution
+
+\vfill
+$$p(\Phi) = \frac{1}{Z} \exp\left(\frac{-2{\cal L}}{\eta}\right)$$
+
+
+\slide{Relating Langevin Dynamics and the SGD-SDE}
+
+Consider a Bayesian model:
+{\huge
+\begin{eqnarray*}
+p_{\mathrm{Bayes}}(\Phi|\train) & = & \frac{1}{Z}\;p_{\mathrm{Bayes}}(\Phi,\train)\;\;\;Z = p_\mathrm{Bayes}(\train) \\
+\\
+ & = & \frac{1}{Z}\; p_\pri(\Phi)P(\train|\Phi)
+ \end{eqnarray*}
+}
+
+Consider the loss function:
+{\huge
+\begin{eqnarray*}
+{\cal L}(\Phi) & = & -\ln P_\mathrm{Bayes}(\Phi|\train)
+\end{eqnarray*}
+}
+
+We will give an SGD algorithm and learning rate $\eta$ such that:
+{\huge
+$$p_\mathrm{SGD}(\Phi|{\cal L},\eta) = p_\mathrm{Bayes}(\Phi|\train)$$
+}
+
+\slide{The Loss Function}
+
+{\huge
+\begin{eqnarray*}
+p_{\mathrm{Bayes}}(\Phi|\train) & = & \frac{1}{Z}\;p_{\mathrm{Bayes}}(\Phi,\train)\;\;\;Z = p_\mathrm{Bayes}(\train) \\
+\\
+ & = & \frac{1}{Z}\; p_\pri(\Phi)P(\train|\Phi) \\
+ \\
+ & = & \frac{1}{Z'}\; p_\pri(\Phi)\;\sum_{(x,y) \in \train} p_\Phi(y|x)
+ \end{eqnarray*}
+}
+
+\vfill
+
+{\huge
+\begin{eqnarray*}
+{\cal L}(\Phi) & = & -\ln P_\mathrm{Bayes}(\Phi|\train) \\
+\\
+& = & E_{(x,y) \sim \train}\left[-\ln(P_\Phi(y|x))\right] \;\;+ \frac{1}{N_\train}\left(-\ln p_\pri(\Phi)\right) + \ln Z''
+\end{eqnarray*}
+}
+
+\slide{The Gibbs Distribution}
+
+For the adaptive update
+
+\vfill
+$$\Phi_{i+1} = \Phi_{i} - \eta \Sigma(\Phi)^{-1} \hat{g}_i$$
+
+\vfill
+we have a stationary distribution
+
+\vfill
+\begin{eqnarray*}
+p_\mathrm{SGD}(\Phi) & = & \frac{1}{Z} \exp\left(\frac{-2{\cal L}}{\eta}\right) \\
+\\
+& = & p_\mathrm{Bayes}(\Phi|\train)\;\;\;\mbox{for $\eta = 2$}
+\end{eqnarray*}
+
+\slide{END}
+
+\slide{Appendix: Diffusion Flow}
+
+{\Large
+We consider the one dimensional case where we have a function $x(t) \in \mathbb{R}$.  We consider a very small time step $\Delta t$ and consider only the diffusion flow.
+
+\begin{eqnarray*}
+x(t + \Delta t) & = & x(t) + \sigma \epsilon \sqrt{\Delta t},\;\;\;\epsilon \sim {\cal N}(0,1)
+\end{eqnarray*}
+
+\vfill
+We assume a density $p_x$ of values of $x$ and let $p_\epsilon(\epsilon)$ be the normal distribution ${\cal N}(0,1)$ on $\epsilon$.
+
+\vfill
+The quantity of mass transfer in the time interval $\Delta t$ from values above $x$ to values below $x$ is
+
+\begin{eqnarray*}
+& & \int_{z = 0}^\infty  p_x(x + z)\;p_\epsilon(\sigma\epsilon\sqrt{\Delta t} \leq -z) dz  \\
+\\
+& = & \int_{z = 0}^\infty  p_x(x + z)\;p_\epsilon\left(\epsilon \leq \frac{-z}{\sigma\sqrt{\Delta t}}\right) dz  \\
+\\
+& =  & \int_{z = 0}^\infty p_x(x+z)\;\Phi\left(\frac{-z}{\sigma\sqrt{\Delta t}}\right) dz
+\end{eqnarray*}
+
+\vfill
+where $\Phi$ is the cummulative function of the Gaussian.
+}
+
+\slide{Appendix: Diffusion Flow}
+{\Large
+
+The quantity of mass transfer in the time interval $\Delta t$ from values above $x$ to values below $x$ is
+
+
+\begin{eqnarray*}
+&  & \int_{z = 0}^\infty p_x(x+z)\;\Phi\left(\frac{-z}{\sigma\sqrt{\Delta t}}\right) dz
+\end{eqnarray*}
+
+By a change of variables $u = z/(\sigma\sqrt{\Delta t})$ we get
+
+\begin{eqnarray*}
+&  & \int_{u = 0}^\infty p_x(x+\sigma\sqrt{\Delta t}\;u)\;\Phi(-u) \sigma\sqrt{\Delta t}\;du
+\end{eqnarray*}
+
+\vfill
+As $\Delta t \rightarrow 0$ we can use the first order Taylor expansion of the density.
+
+\begin{eqnarray*}
+&  & \sigma\sqrt{\Delta t} \int_{u = 0}^\infty \left(p_x(x)+\sigma\sqrt{\Delta t}\;u \frac{dp_x(x)}{dx}\right)\;\Phi(-u)\;du
+\end{eqnarray*}
+}
+
+\slide{Appendix: Diffusion Flow}
+{\Large
+
+\begin{eqnarray*}
+&  & \sigma\sqrt{\Delta t} \int_{u = 0}^\infty \left(p_x(x)+\sigma\sqrt{\Delta t}\;u \frac{dp_x(x)}{dx}\right)\;\Phi(-u)\;du \\
+\\
+& = & \sigma\sqrt{\Delta t}\;p_x(x)\left(\int_{u=0}^\infty \Phi(-u)\;du\right) +  \sigma^2\Delta t \frac{dp_x(x)}{dx} \left(\int_{u=0}^\infty u\Phi(-u) du\right)
+\end{eqnarray*}
+
+A similar alanysis shows that the mass transfer from lower values to higher values is
+
+\begin{eqnarray*}
+& = & \sigma\sqrt{\Delta t}\;p_x(x)\left(\int_{u=0}^\infty \Phi(-u)\;du\right) -  \sigma^2\Delta t \frac{dp_x(x)}{dx} \left(\int_{u=0}^\infty u\Phi(-u) du\right)
+\end{eqnarray*}
+
+\vfill
+The net mass transfer in the positive $x$ direction is the second minus the first or
+
+\begin{eqnarray*}
+& = & - 2\sigma^2\Delta t \frac{dp_x(x)}{dx} \left(\int_{u=0}^\infty u\Phi(-u) du\right)
+\end{eqnarray*}
+}
+
+\slide{Appendix: Diffusion Flow}
+{\Large
+
+The net mass transfer in the positive $x$ direction is
+
+\begin{eqnarray*}
+& & - 2\sigma^2\Delta t \frac{dp_x(x)}{dx} \left(\int_{u=0}^\infty u\Phi(-u) du\right)
+\end{eqnarray*}
+
+\vfill
+Note that the mass transfer is proportional to $\Delta t$.  Dividing by $\Delta t$ gives the flow per unit time.
+
+\vfill
+$$\mbox{Diffusion flow}\;\;= - \alpha \sigma^2 \frac{dp_x(x)}{dx}\;\;\;\;\;\alpha = 2\int_{u=0}^\infty u\Phi(-u) du$$
+
+\vfill
+$\alpha$ can be calculated using integration by parts.
+
+\begin{eqnarray*}
+\alpha & = & 2 \int_{0}^\infty u \Phi(-u)du \\
+& = & \int_{0}^\infty \Phi(-u)du^2 \\
+& = & u^2 \Phi(-u)|_{0}^{\infty}+\int_{0}^\infty u^2 \phi(-u)du \;\;\mbox{where $\phi$ is the Gaussian density} \\
+& = & \int_{0}^\infty u^2 \phi(-u)du\\
+& = & \frac{1}{2}
+\end{eqnarray*}}
+
+\slide{Appendix: Diffusion Flow}
+
+{\Large
+We now have that the diffusion flow is
+
+$$\mbox{Diffusion flow}\;\;= - \frac{1}{2}\; \sigma^2 \frac{dp_x(x)}{dx}$$
+
+\vfill
+For dimension larger than 1 we have
+
+\vfill
+$$\mbox{Diffusion flow}\;\;= - \frac{1}{2}\;\Sigma \nabla_x p_x$$
+
+\vfill
+Where $\Sigma = E\;(\hat{g} - g)(\hat{g} - g)^\top$ is the covariance matrix of the gradient noise.
+
+\vfill
+Here we have derived this from first principle but it also follows from the Fokker–Planck equation (see Wikipedia).
+}
+
+
+
+\slide{END}
+
+
+\end{document}

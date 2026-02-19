@@ -1,0 +1,380 @@
+\input ../SlidePreamble
+\input ../preamble
+
+\begin{document}
+
+{\Huge
+
+  \centerline{\bf TTIC 31230, Fundamentals of Deep Learning}
+  \bigskip
+  \centerline{David McAllester, Autumn 2024}
+
+
+  \vfill
+  \centerline{\bf AlphaZero, MuZero and AlphaStar}
+  \vfill
+  \vfill
+
+\slide{The Breakthrough in Go (October 2015)}
+
+\centerline{\includegraphics[width=4in]{\images/alphago}}
+
+\slide{Timeline}
+
+{\bf October 2015:} AlphaGo-Fan Defeats Fan Hui, European Go Champion.
+
+\vfill
+{\bf March 2016:} AlphaGo-Lee Defeats Lee Sedol, world Go Champion.
+
+\vfill
+{\bf April 2017:} AlphaGo-Zero learns from self play only and defeats AlphaGo-Lee under match conditions 100 to 0.
+
+\vfill
+{\bf December 2017:} AlphaZero Learns to play chess and shogi and defeats stockfish (already super-human) in Chess.
+
+\vfill
+{\bf September 2024:} The AlphaZero algorithm is used to train AlphaProof.
+
+\slide{Go Elo Ratings (December 2017)}
+
+\centerline{\includegraphics[height = 5in]{\images/alpha40}}
+
+\slide{Learning Curve for Predicting Human Go Moves}
+
+\centerline{\includegraphics[height = 5in]{\images/alphalearning2}}
+
+\slide{Classical Computer Chess Algorithms}
+
+First computer chess algorithm (min-max tree search) --- Claude Shannon, 1949
+
+\vfill
+$\alpha$-$\beta$ pruning --- various originators (including John McCarthy) circa 1960.
+
+\vfill
+$\alpha$-$\beta$ pruning was the backbone of all computer chess before AlphaGo.
+
+\vfill
+The branching factor in Go so large that alpha-beta tree search is infeasible.
+
+\slidetwo{Monte-Carlo Tree Search (MCTS)}
+{Brugmann 1993}
+
+First major advance in computer Go.
+
+\vfill
+To estimate the value of a position (who is ahead and by how much)
+run a cheap stochastic policy to generate a sequence of moves (a rollout) and see who wins.
+
+\vfill
+Select the move with the best rollout value.
+
+\slidetwo{(One Armed) Bandit Problems}
+{Robbins 1952}
+
+Bandit problems were studied in an independent line of research.
+
+\vfill
+Consider a set of choices.  The standard example is a choice between different slot machines with different but unknown expected payout.
+The ``phrase one-armed bandit'' refers to a slot machine.
+
+\vfill
+But another example of choices might be the moves in a game.
+
+\slide{Bandit Problems}
+
+\vfill
+Consider a set of choices where each choice gets a stochastic reward.
+
+\vfill
+We can select a choice and get a reward as often as we like.
+
+\vfill
+We would like to determine which choice is best using a limited number of trials.
+
+\slidetwo{The Upper Confidence Bound (UCB) Algorithm}
+{Lai and Robbins 1985}
+
+For each action choice (bandit) $a$, construct a confidence interval for its average reward
+based on $n$ trials for that acrtion.
+
+\vfill
+$$\mu(a) \in \hat{\mu}(a) \pm 2\sigma(a)/\sqrt{n(a)}$$
+
+\vfill
+Always select
+
+$$\argmax_a \;\; \hat{\mu}(a) + 2\sigma(a)/\sqrt{n(a)}$$
+
+\slidetwo{The Upper Confidence Tree (UCT) Algorithm}
+{Kocsis and Szepesvari (2006), Gelly and Silver 2007}
+
+The UCT algorithm grows a tree by running ``simulations''.
+
+\vfill
+Each simulation descends into the tree to a leaf node, expands that leaf, and returns a value.
+
+\vfill
+In the UCT algorithm each move choice at each position is treated as a bandit problem.
+
+\vfill
+We select the child (bandit) with the lowest upper bound as computed from simulations selecting that child.
+
+
+\slidetwo{Bootstrapping from Game Tree Search}
+{Vaness, Silver, Blair and Uther 2009}
+
+In bootstrapped tree search we do a tree search to compute a min-max value $V_{\mathrm{mm}}(s)$
+using tree search with a static evaluator $V_\Phi(s)$.  We then try to fit the static value to the min-max value.
+
+\vfill
+$$\Delta \Phi = - \eta \nabla_\Phi \left(V_\Phi(s) - V_{\mathrm{mm}}(s)\right)^2$$
+
+\vfill
+This is similar to minimizing a Bellman error between $V_\Phi(s)$ and a rollout estimate of the value of $s$ but where the rollout
+estimate is replaced by a min-max tree search estimate.
+
+
+\slide{The Value and Policy Networks}
+
+The main innovation of AlphaGo and AlphaZero is to use deep networks for a value function and a policy function.
+
+\vfill
+They also innovate with the structure of UCT and self-play bootstrapping.
+
+\vfill
+The result is an extremely general RL algorithm.
+
+\slide{The Value and Policy Networks}
+
+\centerline{$\pi_\Phi(a|s)$ \hspace{.5in} $V_\Phi(s)$}
+\centerline{\includegraphics[height=3.0in]{\images/alphagoArchitecture2}}
+
+\vfill
+The final AlphaZero system 40 a layer ResNet with both a policy head and a value head.
+
+\slide{Tree Search Algorithm}
+
+Move selection involves a tree search.
+
+\vfill
+Each node represents a board position $s$ and stores the following information.
+
+\vfill
+\begin{itemize}
+\item $V_\Phi(s)$ --- the value network value for the position $s$.
+\vfill
+\item The policy probabilities $\pi_\Phi(a|s)$ for each legal action $a$
+from that position.
+\vfill
+\item An initially empty set of children nodes.
+\end{itemize}
+
+
+\slide{Tree Search Algorithm}
+
+\vfill
+The tree is grown by a series of ``simulations''.
+
+\vfill
+Each simulation starts at the root and recursively selects a move.
+
+\vfill
+The selected move $a$ from state $s$ may or may not correspond to an existing child of $s$.
+
+\vfill
+If the child exists the simulation continues down that path.
+
+\vfill
+If the child does not exist a new child node is created for the selected move and the simulation terminates.
+
+\vfill
+Each simulation adds one new leaf $s$ and returns the value $V_\Phi(s)$ to all parents of $s$ in the tree.
+
+\slide{Tree Search Algorithm}
+
+In addition to $V_\Phi(s)$, $\pi_\Phi(a|s)$ and set of children nodes, each node $s$ contains
+the following for each possible action $a$.
+
+\vfill
+\begin{itemize}
+\item The number $N(s,a)$ of simulations that have tried move $a$ from $s$. This is initially zero.
+
+\vfill
+\item The average $\overline{V}(s,a)$ of $V_\Phi(s)$ plus the values returned by the the simulations that selected
+ move $a$ from position $s$.  This averages $1 + N(s,a)$ numbers.
+\end{itemize}
+
+\slide{Simulations and Upper Confidence Bounds}
+
+At a node $s$ a simulation selects the move $\argmax_a \mathrm{UCB}(s,a)$ where we have
+
+\vfill
+$$\mathrm{UCB}(s,a) =   \overline{V}(s,a) + \lambda_u\; \pi_\Phi(a|s)/(1+N(s,a))$$
+
+\vfill
+We set $\lambda_u$ be large enough that $\mathrm{UCB}(s,a)$ will typically decrease as $N(s,a)$ increases.
+
+\slide{Root Action Selection}
+
+When the search is completed, we must select a move from the root position to make actual progress in the game.  For this we use a post-search stochastic policy
+
+\vfill
+$$\pi_{s_{\mathrm{root}}}(a) \propto N(s_{\mathrm{root}},a)^\beta$$
+
+\vfill
+where $\beta$ is a temperature hyperparameter.
+
+\slide{Constructing a Replay Buffer}
+
+We run a large number of games.
+
+\vfill
+We construct a replay buffer of triples $(s,\pi_{s},R)$ where
+
+\vfill
+\begin{itemize}
+\item $s$ is a position encountered in a game and hence a root position of a tree search.
+
+\vfill
+\item $\pi_{s}$ is the distribution on $a$ defined by $P(a) \propto N(s,a)^\beta$.
+
+\vfill
+\item $R \in \{-1,1\}$ is the final outcome of the game for the player whoes move it is at position $s$.
+\end{itemize}
+
+\slide{The Loss Function}
+
+\vfill
+Training is done by SGD on the following loss function.
+
+$$\Phi^*\; = \;\argmin_\Phi \;E_{(s,\pi,R) \sim \mathrm{Replay},\;a \sim \pi}\;\left(\begin{array}{l} (V_\Phi(s) - R)^2 \\ \\ - \lambda_\pi\log \pi_\Phi(a|s) \\ \\ + \lambda_R\;||\Phi||^2\end{array}\right)$$
+
+\vfill
+In principle this algorithm can be applied to any RL problem.
+
+\slide{MuZero}
+
+{\bf Mastering Atari, Go, chess and shogi by planning with a learned model}, Schrittweiser et al., Nature 2020.
+
+\vfill
+Doing a tree search over possible actions requires knowing (or modeling) how a given action changes the state of the system.
+
+\vfill
+For example, tree seach in chess requires knowing how an move changes the state.
+
+\vfill
+MuZero does not assume a known state representation.
+
+\slide{MuZero}
+
+Q-learning and advantage actor-critic do not require the ability to plan ahead (tree search).
+
+\vfill
+But AlphaZero uses Monte-Carlo tree search (MCTS) to ``plan'' into the future.
+
+\vfill
+MuZero uses the sequence of actions and observations as a representation of state.
+
+\vfill
+This matches, but does not improve, playing Go and Chess.
+
+\vfill
+But it improves the performance on Atari games by allowing tree search prior to action selection.
+
+\slide{The Replay Buffer}
+
+A ``state'' is a sequence of observations (the game screen) and actions.
+$$s = (o_1,a_1,\ldots,o_t,a_t)$$
+
+\vfill
+They construct a replay buffer from rollouts using a (learned) action policy.
+
+\vfill
+A replay entry $e$ has the form
+$$e = \left[\;s_t;\;\;a_{t+1},\;r_{t+1},\ldots,a_{t+K},r_{t+K},\;\;v_{t+K+1}\;\right]$$
+
+\vfill
+$r_{t+i}$ is the observed reword at $t+i$ and $v_{t+K+1}$ is the (learned) value network applied to state $s_{t+K+1}$
+
+\slide{Training}
+
+{\huge
+The training loss function has the form
+
+$$\Phi^* = \argmin_\Phi E_{s \sim \mathrm{Rollout}}\;{\cal L}^\pi(s) + {\cal L}^V(s) +{\cal L}^R(s) + c||\Phi||^2$$
+  
+\vfill
+${\cal L}^\pi$ trains the policy network to predict $a_{t+1}$ (a cross-entropy loss).
+
+\vfill
+${\cal L}^V$ trains the value network to predict $v_{t+K+1}$ (square loss).
+
+\vfill
+${\cal L}^R$ trains the reward network to predict each $r_{t+k}$ (square loss).
+}
+
+\ignore{
+\slide{Results}
+
+\centerline{\includegraphics[height= 4.5in]{\images/muzerochess}}
+
+The orange line is alphazero.
+}
+
+\slide{Results}
+
+\centerline{\includegraphics[height= 4.0in]{\images/muzeroatari}}
+
+{\huge
+  These are human normalized scores averaged over all 57 Atari games.  The orange line is the previous state of the art system.  Solid lines are average scores and dashed lines are median scores.
+}
+
+
+\slide{AlphaStar}
+
+Grandmaster level in StarCraft II using multi-agent reinforcement learning, Nature Oct. 2019, Vinyals et al.
+
+\vfill
+StarCraft:
+
+\begin{itemize}
+\item Players control hundreds of units.
+
+\vfill
+\item Individual actions are selected from $10^{26}$ possibilities (an action is a kind of procedure call with arguments).
+
+\vfill
+\item Cyclic non-transitive strategies (rock-paper-scissors).
+
+\vfill
+\item Imperfect information --- the state is not fully observable.
+\end{itemize}
+
+\slide{The Paper is Vague}
+
+It basically says the following ideas are used:
+
+A policy gradient algorithm, auto-regressive policies, self-attention over the observation history,L STMs, pointer-networks, scatter connections,
+replay buffers, asynchronous advantage actor-critic algorithms, TD($\lambda$) (gradients on value function Bellman error), clipped importance sampling
+(V-trace), a new undefined method they call UPGO that ``moves policies toward trajectories with better than average reward'', a value function
+that can see the opponents observation (training only), a ``$z$ statistic'' stating a high level strategy, 
+supervised learning from human play, 
+a ``league'' of players (next slide).
+
+\slide{The League}
+
+The league has three classes of agents: main (M), main exploiters (E), and league exploiters (L).  M and L play against everybody.
+E plays only against M.
+
+\slide{A Rube Goldberg Contraption?}
+
+\centerline{\includegraphics[height = 5in]{\images/Goldberg}}
+
+\slide{Video}
+
+https://www.youtube.com/watch?v=UuhECwm31dM
+
+\slide{END}
+
+}
+\end{document}

@@ -1,0 +1,147 @@
+\frenchspacing
+\documentclass{amsart}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{minted}
+\pagestyle{fancy}
+\usepackage[margin=1in]{geometry}
+\newgeometry{left=1.5cm, right=1.5cm, top = 1.5cm}
+\fancyhfoffset[E,O]{0pt}
+\allowdisplaybreaks
+
+
+\rhead{Andrew Lys}   %% <-- your name here
+\chead{Problem}
+\cfoot{\thepage}
+\lhead{\today}
+
+
+
+%% your macros -->
+\newcommand{\nn}{\mathbb N}    %% naturals
+\newcommand{\zz}{\mathbb Z}    %%integers
+\newcommand{\rr}{\mathbb R}    %% real numbers
+\newcommand{\cc}{\mathbb C}    %% complex numbers
+\newcommand{\ff}{\mathbb F}
+\newcommand{\qq}{\mathbb Q}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\limn}{\lim_{n \to \infty}} %%lim n to infty shorthand
+\newcommand{\va}{\mathbf{a}}
+\newcommand{\vb}{\mathbf{b}}
+\newcommand{\vc}{\mathbf{c}}
+\newcommand{\vx}{\mathbf{x}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\vw}{\mathbf{w}}
+\newcommand{\vu}{\mathbf{u}}
+% Source - https://tex.stackexchange.com/q/79434
+% Posted by Memming, modified by community. See post 'Timeline' for change history
+% Retrieved 2026-02-11, License - CC BY-SA 3.0
+
+\newcommand\ind{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\DeclareMathOperator{\Var}{\mathbb{Var}}  %% variance
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\Sym}{Sym}
+\DeclareMathOperator{\Cov}{\mathbb{Cov}}
+\DeclareMathOperator{\ee}{\mathbb{E}}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+\noindent
+Problem Set 1  \hfill \today  %% <-- Update Notes here ***
+\smallskip
+\hrule
+\smallskip
+\noindent
+Solutions by {\bf Andrew Lys} \qquad   %% <-- your name here ***
+  {\tt alys(at)ncsu.edu}
+
+\vspace{0.5cm}
+\subsection*{Problem 1}
+Consider 
+\begin{align*}
+    y &= \sigma(w^\top x)\\
+    \ell &= \cL(y)
+\end{align*}
+for $w, x \in \rr^d$ and $\sigma(z)=z^+$. Gve an expression for $\frac{\partial \ell}{\partial w_i}$ as a function of $\frac{d \cL(y)}{dy}$.
+\begin{proof}
+    By the chain rule, we have:
+    \begin{align*}
+        \frac{\partial \ell}{\partial w_i} &= \frac{d \cL(y)}{d y}  \frac{\partial y}{\partial w_i} \\
+        &= \frac{d \cL(y)}{d y}  \frac{\partial \sigma(w^\top x)}{\partial w_i} \\
+        &= \frac{d \cL(y)}{d y}  \sigma'(w^\top x)  x_i\\
+        &= \frac{d \cL(y)}{d y}  \mathbbm{1}_{w^\top x > 0}  x_i
+    \end{align*}
+\end{proof}
+
+\subsection*{Problem 2}
+\begin{align*}
+    \text{for } b, j &\quad s.\text{grad}[b,j] += p.\text{grad}[b,j]  \exp(s[b,j])/Z[b]\\
+    \text{for } b, j &\quad Z.\text{grad}[b] -= p.\text{grad}[b,j]  \exp(s[b,j])/(Z[b])^2\\
+    \text{for } b, j & \quad s.\text{grad}[b,j] += Z.\text{grad}[b]  \exp(s[b,j])
+\end{align*}
+
+\subsection*{Problem 3}
+Consider the following code:
+\begin{align*}
+    \text{for } b, j &\quad e[b] -= p[b,j] p.\text{grad}[b,j] \\
+    \text{for } b, j &\quad s.\text{grad}[b,j] += p[b,j](p.\text{grad}[b,j] + e[b])
+\end{align*}
+Show how this code computes the same gradient as the code in Problem 2.
+\begin{proof}
+    We can plug in $Z.\text{grad}[b]$ from the second line of Problem 2 into the third line of Problem 2 to get:
+    \begin{align*}
+        \text{for } b, j &\quad s.\text{grad}[b,j] += \left(
+            \sum_j - p.\text{grad}[b,j] \exp(s[b,j])/(Z[b])^2
+        \right) \exp(s[b,j])\\
+        &= \frac{e[b]}{Z[b]} \exp(s[b,j]) = p[b,j] e[b]
+    \end{align*}
+    Additionally, we may rewrite the first line of Problem 2 as:
+    \begin{align*}
+        \text{for } b, j &\quad s.\text{grad}[b,j] += p.\text{grad}[b,j]  \exp(s[b,j])/Z[b] = p[b,j] p.\text{grad}[b,j]
+    \end{align*}
+    Now that we have no reliance on $Z.\text{grad}[b]$, we can combine the two lines, after computing $e[b]$, to get:
+    \begin{align*}
+        \text{for } b, j &\quad s.\text{grad}[b,j] += p[b,j] p.\text{grad}[b,j] + p[b,j] e[b] = p[b,j](p.\text{grad}[b,j] + e[b])
+    \end{align*}
+\end{proof}
+
+\subsection*{Problem 4}
+\subsubsection*{Part (a)}
+\begin{align*}
+    \text{for } b, j, k &\quad \tilde{R}_t[b, j] += W^{h, R}[j, k] h_{t-1}[b, k]\\
+    \text{for } b, j, k &\quad \tilde{R}_t[b, j] += W^{x, R}[j, k] x_t[b, k]\\
+    \text{for } b, j &\quad \tilde{R}_t[b, j] -= B^R[j]
+\end{align*}
+\subsubsection*{Part (b)}
+\begin{align*}
+    \text{for } b, j &\quad B^R.\text{grad}[j] -= \frac1{B} \tilde{R}_t.\text{grad}[b, j]\\
+    \text{for } b, j, k &\quad W^{x, R}.\text{grad}[j, k] += \frac1{B} \tilde{R}_t.\text{grad}[b, j] x_t[b, k]\\
+    \text{for } b, j, k &\quad W^{h, R}.\text{grad}[j, k] += \frac1{B} \tilde{R}_t.\text{grad}[b, j] h_{t-1}[b, k]\\
+    \text{for } b, j, k &\quad h_{t-1}.\text{grad}[b, k] +=  \tilde{R}_t.\text{grad}[b, j] W^{h, R}[j, k]\\
+\end{align*}
+
+\subsection*{Problem 5}
+
+\begin{verbatim}
+    hs = []
+    hs.append(CELL(Phi, X[0], ZERO))
+    for t in range(1, T + 1):
+        hs.append(CELL(Phi, X[t], hs[-1]))
+\end{verbatim}
+\end{document}

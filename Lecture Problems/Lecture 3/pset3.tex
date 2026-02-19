@@ -1,0 +1,145 @@
+\frenchspacing
+\documentclass{amsart}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{minted}
+\pagestyle{fancy}
+\usepackage[margin=1in]{geometry}
+\newgeometry{left=1.5cm, right=1.5cm, top = 1.5cm}
+\fancyhfoffset[E,O]{0pt}
+\allowdisplaybreaks
+
+
+\rhead{Andrew Lys}   %% <-- your name here
+\chead{Problem}
+\cfoot{\thepage}
+\lhead{\today}
+
+
+
+%% your macros -->
+\newcommand{\nn}{\mathbb N}    %% naturals
+\newcommand{\zz}{\mathbb Z}    %%integers
+\newcommand{\rr}{\mathbb R}    %% real numbers
+\newcommand{\cc}{\mathbb C}    %% complex numbers
+\newcommand{\ff}{\mathbb F}
+\newcommand{\qq}{\mathbb Q}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\limn}{\lim_{n \to \infty}} %%lim n to infty shorthand
+\newcommand{\va}{\mathbf{a}}
+\newcommand{\vb}{\mathbf{b}}
+\newcommand{\vc}{\mathbf{c}}
+\newcommand{\vx}{\mathbf{x}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\vw}{\mathbf{w}}
+\newcommand{\vu}{\mathbf{u}}
+% Source - https://tex.stackexchange.com/q/79434
+% Posted by Memming, modified by community. See post 'Timeline' for change history
+% Retrieved 2026-02-11, License - CC BY-SA 3.0
+
+\newcommand\ind{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\DeclareMathOperator{\Var}{\mathbb{Var}}  %% variance
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\Sym}{Sym}
+\DeclareMathOperator{\Cov}{\mathbb{Cov}}
+\DeclareMathOperator{\ee}{\mathbb{E}}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+\noindent
+Problem Set 1  \hfill \today  %% <-- Update Notes here ***
+\smallskip
+\hrule
+\smallskip
+\noindent
+Solutions by {\bf Andrew Lys} \qquad   %% <-- your name here ***
+  {\tt alys(at)ncsu.edu}
+
+\vspace{0.5cm}
+\subsection*{Problem 1}
+Let $W_t \in \rr^{IJ}$. Suppose we are given an initial vector $x_0$. Define $x_{t + 1} = W_t x_t$. 
+\subsubsection*{part a:}
+Rewrite equation (1) in terms of the tensors using summation notation.
+\begin{proof}
+   \begin{align*}
+    x[t, j] &= \sum_{i} W[t, i, j] x[t - 1, i]
+   \end{align*}
+\end{proof}
+\subsubsection*{part b:}
+Rewrite equation (1) in terms of the tensors using Einstein summation notation.
+\begin{proof}
+    \begin{align*}
+        x[t, J] &= W[t, I, J] x[t - 1, I]
+    \end{align*}
+\end{proof}
+\subsection*{Problem 2}
+Consider convolving a kernel $K[n_{out}, \Delta x, \Delta y, n_{in}]$ won a layer $L[b, x, y, n_{in}]$, where $B, X, Y, N_{in}, N_{out}, \Delta x, \Delta y$ are number of possible values. 
+How many floating point multiples are required to compute the convolution on the batch?
+\begin{proof}
+    \[
+    B X Y \Delta X \Delta Y N_{in}N_{out}
+    \]
+\end{proof}
+\subsection*{Problem 3}
+Suppose that we want a video CNN producing layers of the form $L[b, x, y, t, n]$. 
+Write the equation for computing $L_{\ell + 1}[b, x, y, t, n]$ from the tensor $L_{\ell}[B, X, Y, T, I]$.
+The filter should include an index $\Delta t$ and handle a stride $s$ applied to both space and time. 
+
+\begin{proof}
+   \[
+   \]
+   \begin{align*}
+    &L_{\ell + 1} [b, x, y, t, j] \\
+    &= \sigma(K_{\ell + 1} [j, \Delta X, \Delta Y, \Delta T, I] L_{\ell}[b, s \cdot x + \Delta X, s \cdot y + \Delta Y, s \cdot t + \Delta T, I] - B[j])
+   \end{align*}
+\end{proof}
+
+\subsection*{Problem 5. Scale Invariance}
+Consider a batch of input images 
+\[
+L_{0, d}[b,x,y,n]
+\]
+$d = 2^k$ is the spatial dimension of $x$ and $y$ and $n$ ranges over the three color channels. 
+To capture scale invariance we compute a set of layers $L_{\ell, d}$ with $0 \le \ell \le \ell_{max}$ and $d$ a power of two with $4 \le d \le d_{max}$ where $d_{max}$ is the spatal dimension of the input images.
+We set $d_{min} = 4$ to allow $3 \times 3$ convolutional filters to the lowest spatial resolution
+The output layer, say for image classification, is $L_{\ell_{max}, d_{min}}[b, x, y, n]$
+
+We define $L_{0, d}[b, x, y, n]$ to be a layer in an "image pyramid" constructed by successively down-sampling the images by a factor of two. 
+\[
+L_{0, d/2}[b, x, y, n] = \underset{x', y' \sim \mathrm{Ber(1/2)}}{\ee}L_{0, d}[b, 2x + x', 2y + y', n]
+\]
+We then define $L_{\ell + 1, d_{max}}[b, x, y, n]$ by $3 \times 3$ convolutions that do not change the image dimension, i.e. 
+\[
+L_{\ell + 1, d_{max}} [b, x, y, n] = \sigma(
+    K_{\ell + 1}[n_{out}, \Delta X, \Delta Y, N_{in}] L_{\ell, d_{max}}[b, x + \Delta X, y + \Delta Y, N_{in}] - B_{\ell + 1} [n_out]
+)
+\]
+
+For $ d < d_{max}$ give an equation for computing $L_{\ell + 1, d}[b, x, y, n]$ from 
+$L_{\ell, d}[b, x, y, n]$ and $L_{\ell, 2d}[b, x, y, n]$ using the same kernel $K_{\ell + 1}[n_{out}, \Delta X, \Delta Y, N_{in}]$ for both inputs.
+
+\begin{proof}
+    \begin{align*}
+        L_{\ell + 1, d}[b, x, y, n] &= \sigma(
+        K_{\ell + 1}[n, \Delta X, \Delta Y, N_{in}] L_{\ell, d}[b, x + \Delta X, y + \Delta Y, N_{in}] \\
+        &+K_{\ell + 1}[n, \Delta X, \Delta Y, N_{in}] L_{\ell, 2d}[b, 2x + \Delta X, 2y + \Delta Y, N_{in}] - B_{\ell + 1} [n]
+        )
+    \end{align*}
+\end{proof}
+\end{document}

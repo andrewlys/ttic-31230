@@ -1,0 +1,132 @@
+\input ../SlidePreamble
+\input ../preamble
+
+\begin{document}
+
+{\Huge
+  
+  \centerline{\bf TTIC 31230, Fundamentals of Deep Learning}
+  \bigskip
+  \centerline{David McAllester}
+  \vfill
+  \vfill
+  \centerline{\bf CNNs: Einstein Notation}
+  \vfill
+  \vfill
+  \vfill
+
+
+\slide{Einstein Notation}
+
+For the representation of general relativity, Einstein introduced the convention of explicitly writing all indeces of tensors where repeated indeces in a product of tensors are implicitly summed.
+
+\vfill
+Writing indeces explicitly improves the clarity of the notation at the expense of not being in correspondence with framework notation.  Most frameworks hide indeces.
+
+\vfill
+This course will focus on conceptual understanding rather than framework implementations.  For conceptual understanding Einstein notation seems preferable.
+
+\slide{Advantages of Einstein Notation}
+
+The indeces of tensors generally have types such as ``batch index'', ``x coordinate'', ``y coordinate'' and  ``neuron index''.
+
+\vfill
+\centerline{\includegraphics[width = 5.0in]{\images/VGG}}
+
+\vfill
+A layer in a CNN has ``shape'' $L[b,x,y,n]$ where $b$ is a batch intex, $n$ is a nueron index, and $x$ and $y$ specify a spacial locotation.
+
+\slide{Advantages of Einstein Notation}
+
+A layer in a CNN has shape $L[b,x,y,n]$.
+
+\vfill
+Writing the indeces explicitily typically makes the meaning of indeces clear and avoids having to remember the somewhat arbitrary order of the indeces (the order matters for
+efficiency of memory access --- discussed later).
+
+\slide{Einstein Notation}
+
+\vfill
+We will use a modified form of Einstein notation where captial letters are used to denote slices of a tensor.  For example:
+
+\vfill
+\begin{itemize}
+
+\item $L[b,x,y,n]$ denotes a single (scalar) number.
+\vfill
+\item $L[b,x,y,N]$ denotes a vector of neuron values.
+\vfill
+\item $L[b,X,Y,N]$ denotes the entire layer of the $b$th batch element.
+\end{itemize}
+
+\slide{Einstein Notation}
+
+Frameworks (and NumPy) use C-order (row-major) in larying out a tensor in memory.
+
+\vfill
+The vector $L[b,x,y,N]$ denotes a continuous block of memory.
+
+\vfill
+The $b$th batch layer $L[b,X,Y,N]$ also denotes a contiguous block of memory.
+
+\slide{Einstein Notation}
+I will use repeated capital letters in a product of tensors to denote summation over those letters.
+
+\vfill
+\begin{eqnarray*}
+y = Wx &\;\;\;\equiv\;\;\; & y[i] = \sum_j \;W[i,j]x[j] \\
+& \;\;\;\equiv \;\;\; & y[i] = W[i,J]x[J] \\
+\\
+\\
+y = x^\top\;W & \;\;\;\equiv \;\;\; & y[j] = \sum_i \;W[i,j]x[i] \\
+& \;\;\;\equiv \;\;\; & y[j] = W[I,j]x[I]
+\end{eqnarray*}
+
+\ignore{
+
+\slide{An MLP in Einstein Notation}
+
+\begin{eqnarray*}
+  {\color{red} h[j]} & = & \sigma\left(W^0[j,I] \;{\color{red} x[I]} - b^0[j]\right) \\
+  \\
+  {\color{red} s[\hat{y}]} & = & \sigma\left(W^1[\hat{y},J]\;{\color{red} h[J]} - b^1[\hat{y}]\right) \\
+  \\
+  {\color{red} P_\Phi[\hat{y}]} & = & \softmax_{\hat{y}}\;{\color{red} s[\hat{y}]}
+\end{eqnarray*}
+}
+
+\slide{Einstein Notation for Convolution}
+
+CNNs provide a good example of the advantage of Einstein Notation.
+
+\vfill
+{\color{red} $L[b,x,y,i]$} is the value of ``neuron'' $i$ for batch element $b$ at image position $\tuple{x,y}$.
+
+\slide{Convolution}
+\centerline{\includegraphics[width = 2.5in]{\images/Convolution}}
+\centerline{$W[\Delta x,\Delta y,i,j]$\hspace{6ex}$L_{{\ell}}[b,x,y,i]$\hspace{6ex}$L_{{\ell+1}}[b,x,y,j]$}
+\centerline{\large River Trail Documentation}
+
+{\huge
+\begin{eqnarray*}
+L_{{\ell+1}}[b,x,y,j] & = & \sigma\left(\sum_{\Delta x,\Delta y,i}\;W[\Delta x, \Delta y, i,j]\; L_{{\ell}}[b,x + \Delta x, y + \Delta y, i] - B[j]\right) \\
+\\
+\\
+& = & \sigma\left(W[\Delta X, \Delta Y, I,j]\; L_{{\ell}}[b,x + \Delta X, y + \Delta Y, I] - B[j]\right)
+\end{eqnarray*}
+}
+\slide{Types and Einstein Notation}
+
+The indeces of tensors generally have types such as a ``time index'', ``x coordinate'', ``y coordinate'', ``batch index'', or ``neuron index''.
+
+\vfill
+Writing a matrix as $W[T,I]$ where $T$ is a time index and $I$ is a feature index makes the type of the matrix $W$ clear and clarifies
+the order of the indeces (disambiguates $W$ from $W^\top$).
+
+\vfill
+Writing a layer of a CNN as $L[B,X,Y,I]$ clarifies both the types and the positions of the four indeces.
+
+\slide{END}
+}
+
+\end{document}
