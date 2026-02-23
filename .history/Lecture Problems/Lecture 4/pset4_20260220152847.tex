@@ -1,0 +1,142 @@
+\frenchspacing
+\documentclass{amsart}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{minted}
+\pagestyle{fancy}
+\usepackage[margin=1in]{geometry}
+\newgeometry{left=1.5cm, right=1.5cm, top = 1.5cm}
+\fancyhfoffset[E,O]{0pt}
+\allowdisplaybreaks
+
+
+\rhead{Andrew Lys}   %% <-- your name here
+\chead{Problem}
+\cfoot{\thepage}
+\lhead{\today}
+
+
+
+%% your macros -->
+\newcommand{\nn}{\mathbb N}    %% naturals
+\newcommand{\zz}{\mathbb Z}    %%integers
+\newcommand{\rr}{\mathbb R}    %% real numbers
+\newcommand{\cc}{\mathbb C}    %% complex numbers
+\newcommand{\ff}{\mathbb F}
+\newcommand{\qq}{\mathbb Q}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\limn}{\lim_{n \to \infty}} %%lim n to infty shorthand
+\newcommand{\va}{\mathbf{a}}
+\newcommand{\vb}{\mathbf{b}}
+\newcommand{\vc}{\mathbf{c}}
+\newcommand{\vx}{\mathbf{x}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\vw}{\mathbf{w}}
+\newcommand{\vu}{\mathbf{u}}
+% Source - https://tex.stackexchange.com/q/79434
+% Posted by Memming, modified by community. See post 'Timeline' for change history
+% Retrieved 2026-02-11, License - CC BY-SA 3.0
+
+\newcommand\ind{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\DeclareMathOperator{\Var}{\mathbb{Var}}  %% variance
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\Sym}{Sym}
+\DeclareMathOperator{\Cov}{\mathbb{Cov}}
+\DeclareMathOperator{\ee}{\mathbb{E}}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+\noindent
+Problem Set 4  \hfill \today  %% <-- Update Notes here ***
+\smallskip
+\hrule
+\smallskip
+\noindent
+Solutions by {\bf Andrew Lys} \qquad   %% <-- your name here ***
+  {\tt alys(at)ncsu.edu}
+
+\vspace{0.5cm}
+\subsection*{Problem 1}
+Let $f$ take a tensor and return a tensor of a potentially different shape. 
+We can write a residual network for this case as 
+\begin{align*}
+  L_1 &= A_1(L_0) + f_1(L_0) \\
+  L_2 &= A_2(L_1) + f_2(L_1) \\
+  &\vdots \\
+  L_N &= A_N(L_{N-1}) + f_N(L_{N-1})
+\end{align*}
+The function $A_n$ adjusts the shape of the previous layer to match the shape of $f_n(L_{n-1})$.
+Suppose that in a CNN we have that $f_n(L_{n+1})$ has the same spatial dimension but fewer features than $L_{n - 1}$.
+\subsubsection*{Part a} Write a tensor expression for an adjustmetn function $A_n$ in this case where the dimension is reduced by multipying the larger dimension feature vector by a matrix. 
+\begin{proof}
+  Let $A_n$ be the matrix that reduces the feature dimension. 
+  This is a matrix of shape $n_{out} \times n_{in}$ where $n_{out}$ is the number of features in $f_n(L_{n-1})$ and $n_{in}$ is the number of features in $L_{n-1}$.
+  We may then write the adjustment function as:
+  \[
+  A_n(L_{n - 1})[b, x, y, i] = A[i, J] L_{n - 1}[b, x, y, J]
+  \]
+\end{proof}
+
+\subsubsection*{Part b}
+Write a tensor expression for reducing the number of features simply by selecting some features and ignoring others. 
+\begin{proof}
+  Let $I$ be set of indices we want to keep. Then we can write the adjustment function as:
+  \[
+  A_n(L_{n - 1}) [b, x, y, I] = L_{n-1}[b, x, y, I]
+  \]
+\end{proof}
+\subsubsection*{Part c}
+A standard motivation for residual networks is that there is a direct gradient path from the loss to the first layer of the network. 
+Which of the adjustment methods of parts I and II preserve this property?
+\begin{proof}
+  The adjustment method of part I preserves this property. 
+  This is because the adjustment function is a linear transformation of the input, and thus the gradient can flow through it without any issues. 
+  The adjustment method of part II does not preserve this property, because it involves selecting some features and ignoring others, which can lead to a loss of information and thus a loss of the direct gradient path.
+\end{proof}
+\subsubsection*{Part d}
+Does the shape adjustment given on slide 15 of the notes preserve the direct parth from the loss to the first layer?
+\begin{proof}
+  No, because only some of the features are selected, and the others are ignored.
+\end{proof}
+
+\subsection*{Problem 2}
+Consider a regression problem where we want to predict a scalar $y$ from a vector $x$. 
+Consider the L-layer perception for this problem which compute hidden layer vectors $h_1[I], \ldots, h_L[I]$ and predictions $\hat{y}_1, \ldots, \hat{y}_L$ where $\hat{y}_l$ is done by a linear regression on the hidden vector $h_{l}[I]$
+\begin{align*}
+  h_0[i] &= x[i]\\
+  &\vdots\\
+  h_{l + 1}[i] &= \sigma(W_{l + 1}^{h, h}[i, I] h_{l}[I] - B_{l + 1}^{h,h}[i])\\
+  \hat{y}_{l + 1} &= W_{l + 1}^{h, y} [I] h_{l + 1}[I] - B_{l + 1}^{h, y}\\
+  &\vdots\\
+  \mathrm{Loss} &= \sum_{l = 1}^{L} (y - \hat{y}_l)^2
+\end{align*}
+Each term in the loss is called a loss head and defines a loss on each prediction $\hat{y}_l$.
+Note that there is still only one scalar loss minimized by SGD. 
+\subsubsection*{Part a} Explain why these multipe loss heads might improve the ability of SGD to find a useful L-layer MLP regression $\hat{y}_L$ when $L$ is large. 
+\begin{proof}
+  The multiple loss heads allow gradients to flow directly from the loss to each hidden layer. 
+  This allows parameters in earlier layers to change more. 
+\end{proof}
+\subsubsection*{Part b} As a function of $L$ what is the order of run time for the backpropagation procedure. 
+\begin{proof}
+  The order of run time is $O(L)$. This is because apart from the gradient of the loss with respect to $\hat{y}_l$, which is $O(L)$, 
+  the rest of the backpropagation procedure is $O(1)$ for each assignment. 
+  Then the run time of backpropagation is proportional to the number of assignments, which is $O(L)$.
+\end{proof}
+\end{document}

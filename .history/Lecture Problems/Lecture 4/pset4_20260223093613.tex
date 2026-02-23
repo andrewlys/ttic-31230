@@ -277,9 +277,4 @@ We train the model on the full loss:
   \Phi^\ast &= \arg\min_\Phi \underset{w_1, \ldots, w_T \sim \mathrm{Train}}{\ee} - \log \Pr_\Phi(w_1, \ldots, w_T) \\
   &= \arg\min_\Phi \underset{w_1, \ldots, w_T \sim \mathrm{Train}}{\ee} \sum_{t = 1}^T - \log \Pr_\Phi(w_t | w_1, \ldots, w_{t - 1})
 \end{align*}
-
-What is the order of run time as a function of sentence length $T$ for the backpropagation for this model run on a sentence $w_1, \ldots, w_T$?
-\begin{proof}
-  It is $O(T)$, since the length of the assignment program is of the order $O(T)$. 
-\end{proof}
 \end{document}
