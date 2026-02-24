@@ -1,0 +1,128 @@
+\frenchspacing
+\documentclass{amsart}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{minted}
+\pagestyle{fancy}
+\usepackage[margin=1in]{geometry}
+\newgeometry{left=1.5cm, right=1.5cm, top = 1.5cm}
+\fancyhfoffset[E,O]{0pt}
+\allowdisplaybreaks
+
+
+\rhead{Andrew Lys}   %% <-- your name here
+\chead{Problem}
+\cfoot{\thepage}
+\lhead{\today}
+
+
+
+%% your macros -->
+\newcommand{\nn}{\mathbb N}    %% naturals
+\newcommand{\zz}{\mathbb Z}    %%integers
+\newcommand{\rr}{\mathbb R}    %% real numbers
+\newcommand{\cc}{\mathbb C}    %% complex numbers
+\newcommand{\ff}{\mathbb F}
+\newcommand{\qq}{\mathbb Q}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\limn}{\lim_{n \to \infty}} %%lim n to infty shorthand
+\newcommand{\va}{\mathbf{a}}
+\newcommand{\vb}{\mathbf{b}}
+\newcommand{\vc}{\mathbf{c}}
+\newcommand{\vx}{\mathbf{x}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\vw}{\mathbf{w}}
+\newcommand{\vu}{\mathbf{u}}
+% Source - https://tex.stackexchange.com/q/79434
+% Posted by Memming, modified by community. See post 'Timeline' for change history
+% Retrieved 2026-02-11, License - CC BY-SA 3.0
+
+\newcommand\ind{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\DeclareMathOperator{\Var}{\mathbb{V}ar}  %% variance
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\Sym}{Sym}
+\DeclareMathOperator{\Cov}{\mathbb{Cov}}
+\DeclareMathOperator{\ee}{\mathbb{E}}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+\noindent
+Problem Set 6  \hfill \today  %% <-- Update Notes here ***
+\smallskip
+\hrule
+\smallskip
+\noindent
+Solutions by {\bf Andrew Lys} \qquad   %% <-- your name here ***
+  {\tt alys(at)ncsu.edu}
+
+\vspace{0.5cm}
+\section*{Problem 1: Moving Averages}
+Consider $x_0, x_1, \ldots$ and two running averages defined as, for $0 < \beta < 1$ and $\gamma > 0$. 
+\begin{align*}
+    y_0 &= 0\\
+    y_{t + 1} &= \beta y_t + (1 - \beta) x_t\\
+    \\
+    z_0 &= 0 \\
+    z_{t + 1} &= \beta z_t + \gamma x_t
+\end{align*}
+\subsection*{Part (a)} Suppose $x_t$ i.i.d. from distribution with mean vector $\bar{x}$
+Give values for 
+\[
+\bar{y} = \lim_{t \to \infty} \ee{y_t}
+\]
+and 
+\[
+\bar{z} = \lim_{t\to \infty} \ee{z_t}
+\]
+as functions of $\beta, \gamma,$ and $\bar{x}$. 
+
+\begin{proof}
+    \begin{align*}
+        \ee{y_2} &= \beta \ee{y_1} + (1 - \beta) \bar{x} \\
+        &= \beta( \beta \ee{y_0} + (1 - \beta) \bar{x}) + (1 - \beta) \bar{x} \\
+        &= \beta^2 \ee{y_0} + \beta(1 - \beta) \bar{x} + (1 - \beta) \bar{x} \\
+        &= (1 - \beta) \bar{x} \sum_{i = 0}^1 \beta^i\\
+        \implies \ee{y_t} &= (1 - \beta) \bar{x} \sum_{i = 0}^{t - 1} \beta^i\\
+        \implies \bar{y} = \lim_{t \to \infty} \ee{y_t} &= (1 - \beta) \bar{x} \sum_{i = 0}^{\infty} \beta^i\\
+        &= \bar{x}
+    \end{align*}
+    For $z_t$, we have
+    \begin{align*}
+        \ee{z_3} &= \beta \ee{z_2} + \gamma \bar{x} \\
+        &= \beta( \beta \ee{z_1} + \gamma \bar{x}) + \gamma \bar{x} \\
+        &= \beta^2 \ee{z_1} + \beta \gamma \bar{x} + \gamma \bar{x} \\
+        &= \beta^2 ( \beta \ee{z_0} + \gamma \bar{x}) + \beta \gamma \bar{x} + \gamma \bar{x} \\
+        &= \beta^3 \ee{z_0} + \gamma \bar{x} \sum_{i = 0}^2 \beta^i\\
+        \implies \ee{z_t} &=  \gamma \bar{x} \sum_{i = 0}^{t - 1} \beta^i\\
+        \implies \bar{z} = \lim_{t \to \infty} \ee{z_t} &= \gamma \bar{x} \sum_{i = 0}^{\infty} \beta^i\\
+        &= \frac{\gamma}{1 - \beta} \bar{x}
+    \end{align*}
+\end{proof}
+
+\subsection*{Part (b)} Express $z_t$ as a function of $y_t, \beta$, and $\gamma$.
+\begin{proof}
+    From part (a) we have:
+    \begin{align*}
+        z_t &= \gamma \sum_{i = 0} ^{t - 1} \beta^i x_{t - 1 - i} \\
+        y_t &= (1 - \beta)\sum_{i = 0} ^{t - 1} \beta^i x_{t - 1 - i}
+    \end{align*}
+    This
+\end{proof}
+\end{document}
+
