@@ -1,0 +1,111 @@
+\frenchspacing
+\documentclass{amsart}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{minted}
+\pagestyle{fancy}
+\usepackage[margin=1in]{geometry}
+\newgeometry{left=1.5cm, right=1.5cm, top = 1.5cm}
+\fancyhfoffset[E,O]{0pt}
+\allowdisplaybreaks
+
+
+\rhead{Andrew Lys}   %% <-- your name here
+\chead{Problem}
+\cfoot{\thepage}
+\lhead{\today}
+
+
+
+%% your macros -->
+\newcommand{\nn}{\mathbb N}    %% naturals
+\newcommand{\zz}{\mathbb Z}    %%integers
+\newcommand{\rr}{\mathbb R}    %% real numbers
+\newcommand{\cc}{\mathbb C}    %% complex numbers
+\newcommand{\ff}{\mathbb F}
+\newcommand{\qq}{\mathbb Q}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\limn}{\lim_{n \to \infty}} %%lim n to infty shorthand
+\newcommand{\va}{\mathbf{a}}
+\newcommand{\vb}{\mathbf{b}}
+\newcommand{\vc}{\mathbf{c}}
+\newcommand{\vx}{\mathbf{x}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\vw}{\mathbf{w}}
+\newcommand{\vu}{\mathbf{u}}
+% Source - https://tex.stackexchange.com/q/79434
+% Posted by Memming, modified by community. See post 'Timeline' for change history
+% Retrieved 2026-02-11, License - CC BY-SA 3.0
+
+\newcommand\ind{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\DeclareMathOperator{\Var}{\mathbb{V}ar}  %% variance
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\Sym}{Sym}
+\DeclareMathOperator{\Cov}{\mathbb{Cov}}
+\DeclareMathOperator{\ee}{\mathbb{E}}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+\noindent
+Problem Set 4  \hfill \today  %% <-- Update Notes here ***
+\smallskip
+\hrule
+\smallskip
+\noindent
+Solutions by {\bf Andrew Lys} \qquad   %% <-- your name here ***
+  {\tt alys(at)ncsu.edu}
+
+\vspace{0.5cm}
+\subsection*{Problem 1. Transformers as Dependency Parsers}
+\subsubsection*{Part (a)} 
+\begin{proof}
+    \[
+    \alpha(\mathbf{dobj}, \mathbf{prefer}, w) = \delta_{w, \text{flight}}
+    \]
+\end{proof}
+\subsubsection*{Part (b)}
+\begin{proof}
+    We are interested in penalizing attention vectors that spread attention across multiple words, 
+    and rewarding attention vectors that focus on a single word. 
+    A natural candidate for this is the shannon entropy of the attention vector. Let $p$ be a probability vector. Then
+    \[
+    H(p) := -\sum_{i} p_i \log p_i
+    \] 
+    Since we wish to penalize all heads, we have the following $\cL_{\text{focus}}$ definition:
+    \[
+    \cL_{\text{focus}} := \sum_{\ell, k, t_1} H(\alpha[\ell, k, t_1, T_2])
+    \]
+    Additionally, we add a hyperparameter $\lambda$ to control the strength of the regularization.
+    \[
+    \cL = \cL_{\text{LM}} + \lambda \cL_{\text{focus}}
+    \]
+\end{proof}
+
+\subsubsection*{Part (c)}
+\begin{proof}
+    A natural candidate for penalizing distance from $t_1$ is just the absolute distance from $t_1$, scaled by the attention weight. 
+    Squared distance is probably a better choice. 
+    Additionally, in order to cap the maximum penalty, to allow for the possibility of outliers, we introduce a hyperparameter $L_{\text{max}}$.
+    As before, we introduce a hyperparameter $\lambda$ to control the strength of the regularization.
+    \[
+    \cL_{\text{near}} := \sum_{\ell, k, t_1} \ee^{\alpha[\ell, k, t_1, T_2]}(t_1 - t_2)^2 \lor L_{\text{max}}
+    \]
+\end{proof}
+\end{document}
+

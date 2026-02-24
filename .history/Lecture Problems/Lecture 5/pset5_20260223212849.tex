@@ -1,0 +1,185 @@
+\frenchspacing
+\documentclass{amsart}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{minted}
+\pagestyle{fancy}
+\usepackage[margin=1in]{geometry}
+\newgeometry{left=1.5cm, right=1.5cm, top = 1.5cm}
+\fancyhfoffset[E,O]{0pt}
+\allowdisplaybreaks
+
+
+\rhead{Andrew Lys}   %% <-- your name here
+\chead{Problem}
+\cfoot{\thepage}
+\lhead{\today}
+
+
+
+%% your macros -->
+\newcommand{\nn}{\mathbb N}    %% naturals
+\newcommand{\zz}{\mathbb Z}    %%integers
+\newcommand{\rr}{\mathbb R}    %% real numbers
+\newcommand{\cc}{\mathbb C}    %% complex numbers
+\newcommand{\ff}{\mathbb F}
+\newcommand{\qq}{\mathbb Q}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\limn}{\lim_{n \to \infty}} %%lim n to infty shorthand
+\newcommand{\va}{\mathbf{a}}
+\newcommand{\vb}{\mathbf{b}}
+\newcommand{\vc}{\mathbf{c}}
+\newcommand{\vx}{\mathbf{x}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\vw}{\mathbf{w}}
+\newcommand{\vu}{\mathbf{u}}
+% Source - https://tex.stackexchange.com/q/79434
+% Posted by Memming, modified by community. See post 'Timeline' for change history
+% Retrieved 2026-02-11, License - CC BY-SA 3.0
+
+\newcommand\ind{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\DeclareMathOperator{\Var}{\mathbb{V}ar}  %% variance
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\Sym}{Sym}
+\DeclareMathOperator{\Cov}{\mathbb{Cov}}
+\DeclareMathOperator{\ee}{\mathbb{E}}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+\noindent
+Problem Set 4  \hfill \today  %% <-- Update Notes here ***
+\smallskip
+\hrule
+\smallskip
+\noindent
+Solutions by {\bf Andrew Lys} \qquad   %% <-- your name here ***
+  {\tt alys(at)ncsu.edu}
+
+\vspace{0.5cm}
+\section*{Problem 1. Transformers as Dependency Parsers}
+\subsection*{Part (a)} 
+\begin{proof}
+    \[
+    \alpha(\mathbf{dobj}, \mathbf{prefer}, w) = \delta_{w, \text{flight}}
+    \]
+\end{proof}
+\subsection*{Part (b)}
+\begin{proof}
+    We are interested in penalizing attention vectors that spread attention across multiple words, 
+    and rewarding attention vectors that focus on a single word. 
+    A natural candidate for this is the shannon entropy of the attention vector. Let $p$ be a probability vector. Then
+    \[
+    H(p) := -\sum_{i} p_i \log p_i
+    \] 
+    Since we wish to penalize all heads, we have the following $\cL_{\text{focus}}$ definition:
+    \[
+    \cL_{\text{focus}} := \sum_{\ell, k, t_1} H(\alpha[\ell, k, t_1, T_2])
+    \]
+    Additionally, we add a hyperparameter $\lambda$ to control the strength of the regularization.
+    \[
+    \cL = \cL_{\text{LM}} + \lambda \cL_{\text{focus}}
+    \]
+\end{proof}
+
+\subsection*{Part (c)}
+\begin{proof}
+    A natural candidate for penalizing distance from $t_1$ is just the absolute distance from $t_1$, scaled by the attention weight. 
+    Squared distance is probably a better choice. 
+    Additionally, in order to cap the maximum penalty, to allow for the possibility of outliers, we introduce a hyperparameter $L_{\text{max}}$.
+    As before, we introduce a hyperparameter $\lambda$ to control the strength of the regularization.
+    \[
+    \cL_{\text{near}} := \sum_{\ell, k, t_1} \ee^{\alpha[\ell, k, t_1, T_2]}[(t_1 - t_2)^2 \land L_{\text{max}}]
+    \]
+\end{proof}
+
+\subsection*{Part (d)}
+The universality assumption is that the model will learn the optimal parameters for the language modeling task,
+so loss shaping will change the optimal parameters. 
+In the real world, it is unlikely that the model will learn the optimal parameters, so loss shaping helps guide the model towards better parameters.
+
+\section*{Problem 2. Adjusting Temperature for Dimension}
+Consider adding a temperature parameter to the softmax:
+\[
+\alpha[\ell, t, w] = \underset{w}{\mathrm{softmax}} \beta h[\ell, t, I] e[w, I]
+\]
+\subsection*{Part (a)} 
+\begin{proof}
+    \begin{align*}
+        \ee[\beta h[t, I] e[w, I]] &= 0 \\
+        \Var(\beta h[t, I] e[w, I]) &= \beta^2 \Var(h[t, I] e[w, I])  = \beta^2 \sum_i \ee[h[t, i]^2] \ee[e[w, i]^2] = \beta^2 I
+    \end{align*}
+    Therefore we let $\beta = I^{-1/2}$. 
+\end{proof}
+\subsection*{Part (b)}
+\begin{proof}
+    This is exactly the normalization used in the softmax. 
+\end{proof}
+
+\section*{Parameterizing Inner-Product}
+
+\subsection*{Part (a)}
+We require that we have multiple heads, so we need $k$ to be a parameter. 
+\subsection*{Part (b)}
+\begin{align*}
+    P(y | T_2) &= \underset{t_2}{\mathrm{softmax}}\,\frac{1}{\sqrt{I}} L[\ell, t_1, J]^\top W^Q_{\ell + 1}[k, J, I] W^K_{\ell + 1}[k, I, J] L[\ell, t_2, J] 
+\end{align*}
+
+\section*{Problem 4. Repetion at Low Temperatures}
+Let $\beta = \infty$. Then we have:
+\[
+\Pr(w_{t + 2} | w_{t}, w_{t + 1}) = \lim_{\beta \to \infty} \underset{w_{t + 2}}{\mathrm{softmax}}\,\beta h[t + 2, I] e[w_{t + 2}, I]
+\]
+which as seen in the first homework, is a one-hot distribution on the word with the highest inner product with $h[t + 2, I]$.
+Each word is deterministic, so whenever we encounter a repeated pair of words, we will always repeat the same word, leading to infinite repetition.
+
+\section*{Problem 5. Eliminating the Key Matrix}
+Self attention is computed by the following equations:
+\begin{align*}
+    \mathrm{Query}_{\ell + 1} [k, t, i] &= W^Q_{\ell + 1}[k, i, J] L_{\ell}[t, J] \\
+    \mathrm{Key}_{\ell + 1} [k, t, i] &= W^K_{\ell + 1}[k, i, J] L_{\ell}[t, J] \\
+    \alpha_{\ell + 1} [k, t_1, t_2] &= \underset{t_2}{\mathrm{softmax}}\, \left[
+        \frac1{\sqrt{I}} \mathrm{Query}_{\ell + 1} [k, t_1, I] \mathrm{Key}_{\ell + 1} [k, t_2, I]
+    \right]
+\end{align*}
+$W^Q$ and $W^K$ are of the same shape $[K, I, J]$. Typically $I < J$.
+\subsection*{Part (a)} Give an equation computing tensor $\tilde{W}^Q[K, J, J]$ from $W^Q$ and $W^K$ such that the attention can be written as:
+\[
+\alpha_{\ell + 1} (k, t_1, t_2) = \underset{t_2}{\mathrm{softmax}}\, \left[
+    L_{\ell} [t_1, J_1] \tilde{W}^Q [k, J_1, J_2] L_{\ell} [t_2, J_2]
+\right]
+\]
+\begin{proof}
+    We want:
+    \[
+    \tilde{W}^Q[k, j_1, j_2] = \frac1{\sqrt{I}}W^Q[k, j_1, I] W^K[k, I, j_2]
+    \]
+    Thus, we have 
+    \[
+    \tilde{W}^Q[k, J_1, J_2] = \frac1{\sqrt{I}}W^Q[k, J_1, I] W^K[k, I, J_2]
+    \]
+\end{proof}
+\subsection*{Part (b)} What is the resulting number of query matrix parameters for a given layer, 
+and how does this compare to the number of key-query matrix parameters for a given layer in the original transformer version.
+\begin{proof}
+    We have $K$ heads, and each head has $J^2$ parameters, so we have $KJ^2$ parameters.
+    In the original, we have $K$ heads, and each of the query and key matrices have $IJ$ parameters, so we have $2KIJ$ parameters.
+    If $J < 2I$, then we have fewer parameters than the original version.
+\end{proof}
+\end{document}
+
