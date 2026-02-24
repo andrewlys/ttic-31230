@@ -209,39 +209,6 @@ $y_t$ is an exponential moving average of $N x_t$
     \begin{align*}
         \mu_t &= \left(1 - \frac1{N}\right) \sum_{i = 0}^{t - 1} \frac1{N^i} x_{t - 1 - i} 
     \end{align*}
-    This gives us that 
-    \[
-    y_t = N \mu_t
-    \]
-\end{proof}
-
-\section*{Problem 4. Bias Correction}
-Consider the following update equation for computing $y_1, \ldots, y_t$ from $x_1, \ldots, x_t$.
-\[
-y_t = \left(
-    1 - \frac1{
-        t \land N
-    }
-\right) y_{t - 1} + \frac1{
-    t \land N
-} x_t
-\]
-If $x_t = c$ give a closed form solution for $y_t$. 
-
-\begin{proof}
-    Let $t < N$. We have:
-    \begin{align*}
-        y_{t} &= \left(1 - \frac{1}{t}\right) y_{t - 1} + \frac{1}{t} c \\
-        &= \left(1 - \frac{1}{t}\right) \left( \left(1 - \frac{1}{t - 1}\right) y_{t - 2} + \frac{1}{t - 1} c\right) + \frac{1}{t} c \\
-        &= \left(1 - \frac{1}{t}\right) \left(1 - \frac{1}{t - 1}\right) y_{t - 2} + \left(1 - \frac{1}{t}\right) \frac{1}{t - 1} c + \frac{1}{t} c \\
-        &= c\prod_{i = 2}^{t} \left(1 - \frac1{i}\right) +  c \sum_{i = 1}^t \frac1{i} \prod_{j = i + 1}^t \left(1 - \frac1{j}\right) 
-    \end{align*}
-
-    Alternatively, 
-    \[
-    y_1 = c
-    \]
-    and for $t > 1$, we have that $y_{t+1}$ is a convex combination of $y_t$ and $c$. Since $y_1 = c$, we have that $y_t = c$ for all $t$.
 \end{proof}
 
 \end{document}
