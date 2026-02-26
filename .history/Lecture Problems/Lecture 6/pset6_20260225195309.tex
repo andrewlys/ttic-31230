@@ -333,16 +333,5 @@ For $|\Phi_t[i]| \ge \epsilon$, this is a multiplicative update.
     \[
     \ee[\hat{g}] = \ee[\nabla_\Phi \cL(\Phi^\ast, x, y)] = 0
     \]
-    Yes.
-\end{proof}
-
-\subsection*{Part (b)}
-Consider an adaptive algorithm which makes the update proportional to the loss. 
-\[
-\Phi_{t + 1} = \Phi^t - \eta \cL \hat{g}_t
-\]
-Is a stationary point of the loss function always a stationary point of the update?
-\begin{proof}
-    Again, an unweighted average equalling zero does not imply the weighted average is zero. 
 \end{proof}
 \end{document}
