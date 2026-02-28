@@ -1,0 +1,348 @@
+\frenchspacing
+\documentclass{amsart}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{bbm}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{minted}
+\pagestyle{fancy}
+\usepackage[margin=1in]{geometry}
+\newgeometry{left=1.5cm, right=1.5cm, top = 1.5cm}
+\fancyhfoffset[E,O]{0pt}
+\allowdisplaybreaks
+
+
+\rhead{Andrew Lys}   %% <-- your name here
+\chead{Problem}
+\cfoot{\thepage}
+\lhead{\today}
+
+
+
+%% your macros -->
+\newcommand{\nn}{\mathbb N}    %% naturals
+\newcommand{\zz}{\mathbb Z}    %%integers
+\newcommand{\rr}{\mathbb R}    %% real numbers
+\newcommand{\cc}{\mathbb C}    %% complex numbers
+\newcommand{\ff}{\mathbb F}
+\newcommand{\qq}{\mathbb Q}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\limn}{\lim_{n \to \infty}} %%lim n to infty shorthand
+\newcommand{\va}{\mathbf{a}}
+\newcommand{\vb}{\mathbf{b}}
+\newcommand{\vc}{\mathbf{c}}
+\newcommand{\vx}{\mathbf{x}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\vw}{\mathbf{w}}
+\newcommand{\vu}{\mathbf{u}}
+% Source - https://tex.stackexchange.com/q/79434
+% Posted by Memming, modified by community. See post 'Timeline' for change history
+% Retrieved 2026-02-11, License - CC BY-SA 3.0
+
+\newcommand\ind{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\DeclareMathOperator{\Var}{\mathbb{V}ar}  %% variance
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\Sym}{Sym}
+\DeclareMathOperator{\Cov}{\mathbb{Cov}}
+\DeclareMathOperator{\ee}{\mathbb{E}}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+\noindent
+Problem Set 6  \hfill \today  %% <-- Update Notes here ***
+\smallskip
+\hrule
+\smallskip
+\noindent
+Solutions by {\bf Andrew Lys} \qquad   %% <-- your name here ***
+  {\tt alys(at)ncsu.edu}
+
+\vspace{0.5cm}
+\section*{Problem 1: Moving Averages}
+Consider $x_0, x_1, \ldots$ and two running averages defined as, for $0 < \beta < 1$ and $\gamma > 0$. 
+\begin{align*}
+    y_0 &= 0\\
+    y_{t + 1} &= \beta y_t + (1 - \beta) x_t\\
+    \\
+    z_0 &= 0 \\
+    z_{t + 1} &= \beta z_t + \gamma x_t
+\end{align*}
+\subsection*{Part (a)} Suppose $x_t$ i.i.d. from distribution with mean vector $\bar{x}$
+Give values for 
+\[
+\bar{y} = \lim_{t \to \infty} \ee{y_t}
+\]
+and 
+\[
+\bar{z} = \lim_{t\to \infty} \ee{z_t}
+\]
+as functions of $\beta, \gamma,$ and $\bar{x}$. 
+
+\begin{proof}
+    \begin{align*}
+        \ee{y_2} &= \beta \ee{y_1} + (1 - \beta) \bar{x} \\
+        &= \beta( \beta \ee{y_0} + (1 - \beta) \bar{x}) + (1 - \beta) \bar{x} \\
+        &= \beta^2 \ee{y_0} + \beta(1 - \beta) \bar{x} + (1 - \beta) \bar{x} \\
+        &= (1 - \beta) \bar{x} \sum_{i = 0}^1 \beta^i\\
+        \implies \ee{y_t} &= (1 - \beta) \bar{x} \sum_{i = 0}^{t - 1} \beta^i\\
+        \implies \bar{y} = \lim_{t \to \infty} \ee{y_t} &= (1 - \beta) \bar{x} \sum_{i = 0}^{\infty} \beta^i\\
+        &= \bar{x}
+    \end{align*}
+    For $z_t$, we have
+    \begin{align*}
+        \ee{z_3} &= \beta \ee{z_2} + \gamma \bar{x} \\
+        &= \beta( \beta \ee{z_1} + \gamma \bar{x}) + \gamma \bar{x} \\
+        &= \beta^2 \ee{z_1} + \beta \gamma \bar{x} + \gamma \bar{x} \\
+        &= \beta^2 ( \beta \ee{z_0} + \gamma \bar{x}) + \beta \gamma \bar{x} + \gamma \bar{x} \\
+        &= \beta^3 \ee{z_0} + \gamma \bar{x} \sum_{i = 0}^2 \beta^i\\
+        \implies \ee{z_t} &=  \gamma \bar{x} \sum_{i = 0}^{t - 1} \beta^i\\
+        \implies \bar{z} = \lim_{t \to \infty} \ee{z_t} &= \gamma \bar{x} \sum_{i = 0}^{\infty} \beta^i\\
+        &= \frac{\gamma}{1 - \beta} \bar{x}
+    \end{align*}
+\end{proof}
+
+\subsection*{Part (b)} Express $z_t$ as a function of $y_t, \beta$, and $\gamma$.
+\begin{proof}
+    From part (a) we have:
+    \begin{align*}
+        z_t &= \gamma \sum_{i = 0} ^{t - 1} \beta^i x_{t - 1 - i} \\
+        y_t &= (1 - \beta)\sum_{i = 0} ^{t - 1} \beta^i x_{t - 1 - i}
+    \end{align*}
+    This implies that 
+    \[
+    z_t = \frac{\gamma}{1-\beta} y_t
+    \]
+\end{proof}
+
+
+\section*{Problem 2: Variance of an exponential moving average}
+Consider a running average for computing $\hat{\mu}_1, \ldots, \hat{\mu_t}$ from $x_1, \ldots, x_t$
+\begin{align*}
+    \hat{\mu}_0 &= 0\\
+    \hat{\mu}_t &= \left(
+    1 - \frac1{N} 
+    \right) \hat{\mu}_{t - 1} + \frac1{N} x_t
+\end{align*}
+\subsection*{Part (a)} Suppose $x_t$ are i.i.d. with variance $\sigma_x^2$. 
+Find 
+\[
+\sigma_{\hat{\mu}, \infty}^2 = \lim_{t\to\infty} \Var{\hat{\mu}_t}
+\]
+\begin{proof}
+    Since $x_t \ind \hat{\mu}_{t - 1}$, we have
+    \begin{align*}
+        \Var{\hat{\mu}_t} &= \left(
+            1 - \frac1{N}
+        \right)^2\Var{ (\hat{\mu}_{t - 1})} + \frac1{N^2} \Var{x_t} \\
+        &= \left(1 - \frac1{N}\right)^2 \Var{(\hat{\mu}_{t - 1})} + \frac{\sigma_x^2}{N^2}
+    \end{align*}
+    Taking limits on both sides, we have
+    \begin{align*}
+        \sigma_{\hat{\mu}, \infty}^2 &= \left(1 - \frac1{N}\right)^2 \sigma_{\hat{\mu}, \infty}^2 + \frac{\sigma_x^2}{N^2}\\ 
+        \left(
+            1 - \left(1 - \frac1{N}\right)^2
+        \right) \sigma_{\hat{\mu}, \infty}^2 &= \frac{\sigma_x^2}{N^2} \\
+        \left(
+            1 - 1 + \frac1{N}
+        \right)\left(
+            1 + 1 - \frac1{N}
+        \right) \sigma_{\hat{\mu}, \infty}^2 &= \frac{\sigma_x^2}{N^2} \\
+        \frac{2N - 1}{N^2} \sigma_{\hat{\mu}, \infty}^2 &= \frac{\sigma_x^2}{N^2} \\
+        \sigma_{\hat{\mu}, \infty}^2 &= \frac{\sigma_x^2}{2N - 1}
+    \end{align*}
+\end{proof}
+\subsection*{Part (b)} Compare $\sigma_{\hat{\mu}, \infty}^2$ to the variance of 
+\[
+\hat{\mu} = \frac1{N} \sum_{t = 1}^N x_t
+\]
+\begin{proof}
+    \begin{align*}
+        \Var{\hat{\mu}} &= \frac1{N^2} \sum_{t = 1}^N \Var{x_t} \\
+        &= \frac{\sigma_x^2}{N}
+    \end{align*}
+\end{proof}
+
+\section*{Problem 3. Reformulating Momentum as an Exponential Moving Average}
+Consider the following update equation.
+\begin{align*}
+    y_0 &= 0 \\
+    y_t &= \left(1 - \frac1{N}\right)y_{t - 1} + x_t
+\end{align*}
+\subsection*{Part (a)}
+Assume $y_t$ converges to a limit. If the input sequence is constant $x_t = c$ what is the limit?
+\begin{proof}
+    We have the following
+    \begin{align*}
+        y &= \left(1 - \frac1{N}\right) y + c \\
+        y &= N c
+    \end{align*}
+\end{proof}
+
+\subsection*{Part (b)} $y_t$ is an exponential moving average of what quantity?
+
+\begin{proof}
+$y_t$ is an exponential moving average of $N x_t$   
+\end{proof}
+
+\subsection*{Part (c)} Express $y_t$ as a function of $\mu_t$ where $\mu_t$ is the exponential moving average of $x_t$ with parameter $\frac1{N}$. 
+
+\begin{proof}
+    Recall that we have:
+    \begin{align*}
+        y_t &= N\left(1 - \frac1{N}\right) \sum_{i = 0}^{t - 1} \frac1{N^i}  x_{t - 1 - i} 
+    \end{align*}
+    On the other hand, we have
+    \begin{align*}
+        \mu_t &= \left(1 - \frac1{N}\right) \sum_{i = 0}^{t - 1} \frac1{N^i} x_{t - 1 - i} 
+    \end{align*}
+    This gives us that 
+    \[
+    y_t = N \mu_t
+    \]
+\end{proof}
+
+\section*{Problem 4. Bias Correction}
+Consider the following update equation for computing $y_1, \ldots, y_t$ from $x_1, \ldots, x_t$.
+\[
+y_t = \left(
+    1 - \frac1{
+        t \land N
+    }
+\right) y_{t - 1} + \frac1{
+    t \land N
+} x_t
+\]
+If $x_t = c$ give a closed form solution for $y_t$. 
+
+\begin{proof}
+    Let $t < N$. We have:
+    \begin{align*}
+        y_{t} &= \left(1 - \frac{1}{t}\right) y_{t - 1} + \frac{1}{t} c \\
+        &= \left(1 - \frac{1}{t}\right) \left( \left(1 - \frac{1}{t - 1}\right) y_{t - 2} + \frac{1}{t - 1} c\right) + \frac{1}{t} c \\
+        &= \left(1 - \frac{1}{t}\right) \left(1 - \frac{1}{t - 1}\right) y_{t - 2} + \left(1 - \frac{1}{t}\right) \frac{1}{t - 1} c + \frac{1}{t} c \\
+        &= c\prod_{i = 2}^{t} \left(1 - \frac1{i}\right) +  c \sum_{i = 1}^t \frac1{i} \prod_{j = i + 1}^t \left(1 - \frac1{j}\right) 
+    \end{align*}
+
+    Alternatively, 
+    \[
+    y_1 = c
+    \]
+    and for $t > 1$, we have that $y_{t+1}$ is a convex combination of $y_t$ and $c$. Since $y_1 = c$, we have that $y_t = c$ for all $t$.
+\end{proof}
+
+\section*{Problem 5.}
+
+\subsection*{Part (a)} Consider vanilla SGD on cross entropy loss for classification with batch size 1 and no momentum. In this case, we have:
+\[
+\Phi_{t + 1} = \Phi_t - \eta \nabla_{\Phi} \log \Pr_\Phi{(y | x)}
+\]
+Suppose someone uses log base 2 and uses the update 
+\[
+\Phi_{t + 1} = \Phi_t - \eta' \nabla_{\Phi} \log_2 \Pr_\Phi{(y | x)}
+\]
+Suppose we find that $\eta$ works for the natural log update. What value of $\eta'$ should be used in the second version?
+
+\begin{proof}
+    \begin{align*}
+        \Phi_{t + 1} &= \Phi_t - \eta' \nabla_{\Phi} \log_2 \Pr_\Phi{(y | x)}\\ 
+        \Phi_{t + 1} &= \Phi_t - \frac{\eta'}{\log{2}} \nabla_{\Phi} \log \Pr_\Phi{(y | x)}\\ 
+    \end{align*}
+    So we let $\eta' = \eta \log{2}$ to get the same update as the natural log version.
+\end{proof}
+
+\subsection*{Part (b)} Consider we have the following simplified version of RMSprop 
+\[
+\Phi -= \frac{\eta}{\sigma_i} \nabla_\Phi \cL_\Phi(x, y)
+\]
+Where $\sigma_i$ is the exact standard deviation of the $i$th coordinate of $\nabla_\Phi[i] \cL_\Phi(x,y)$
+
+If we replace $\cL$ by $2\cL$ what learning rate $\eta'$ should we use to get the same temperature?
+
+\begin{proof}
+    We compute $\sigma_i$ as follows:
+    \[
+    \sigma_i'^2 = \Var{(\nabla_\Phi[i] 2 \cL_\Phi(x, y))} = 4 \Var{(\nabla_\Phi[i] \cL_\Phi(x, y))} = 4 \sigma_i^2
+    \]
+    So, $\sigma_i' = 2 \sigma_i$. This gives us the following update:
+    \begin{align*}
+        \Phi &-= \Phi_t[i] - \frac{\eta'}{\sigma_i'} \nabla_\Phi[i] 2 \cL_\Phi(x, y)\\
+        &-= \Phi_t[i] - \frac{\eta'}{2\sigma_i} 2 \nabla_\Phi[i] \cL_\Phi(x, y)\\
+        &-= \Phi_t[i] - \frac{\eta'}{\sigma_i} \nabla_\Phi[i] \cL_\Phi(x, y)
+    \end{align*}
+    Therefore, we just take $\eta' = \eta$ to get the same update as before.
+\end{proof}
+
+\section*{Adaptive SGD} Consider a generalization of RMSprop where we allow an arbitrary adaptation with different learning rates for different parameter values
+Specifically:
+\[
+\Phi_{t + 1} = \Phi_t - \eta (A(\Phi_t, x_t, y_t) \odot \nabla_\Phi \cL(\Phi_t, x_t, y_t))
+\]
+Consider the special case
+\begin{align*}
+    A(\Phi, x, y) &= \frac{1}{\sqrt{s(\Phi, x, y)} + \epsilon}\\
+    s(\Phi, x, y) &= \frac1{d} \| \nabla_\Phi \cL(\Phi, x, y)\|^2
+\end{align*}
+where $d$ is the dimension of $\Phi$.
+
+\subsection*{Part (a)}
+Let $\Phi^\ast$ be a stationary point of the update equation, i.e. the expected update over a random draw from the population is zero.
+Write this stationarity condition on $\Phi^\ast$ explicitly as an expectation equaling zero
+
+\begin{proof}
+    \[
+    \ee_{(x, y) \sim \mathrm{Pop}} \frac{\nabla_\Phi \cL(\Phi^\ast, x, y)\sqrt{d}}{\|\nabla_\Phi \cL(\Phi^\ast, x, y)\|  + \epsilon\sqrt{d}} = 0
+    \]
+\end{proof}
+
+\subsection*{Part (b)} Is $\Phi^\ast$ a stationary point of the orginal loss - a point where the expected gradient of $\cL(\Phi^\ast, x, y)$ is zero?
+
+\begin{proof}
+    No. A weighted average equalling zero does not imply the unweighted average is zero.
+\end{proof}
+
+\subsection*{Part (c)} Do these observations have implications for the adaptive methods described?
+
+\begin{proof}
+    Yes. This implies that adaptive methods are not guaranteed to converge to stationary points of the original loss. 
+\end{proof}
+
+\section*{Problem 7.}
+Consider the following multiplicative update SGD, for batch size 1
+\[
+\Phi_{t + 1}[i] = \Phi_t[i] - \eta (\epsilon \lor |\Phi_t[i]) \hat{g}(\Phi, x_t, y_t) [i]
+\]
+For $|\Phi_t[i]| \ge \epsilon$, this is a multiplicative update. 
+
+\subsection*{Part (a)} At a stationary point of the loss function, is the expected update over a random draw of $(x, y)$ always equal to zero?
+\begin{proof}
+    Let $\Phi^\ast$ be a stationary point of the loss function. Then, we have
+    \[
+    \ee[\hat{g}] = \ee[\nabla_\Phi \cL(\Phi^\ast, x, y)] = 0
+    \]
+    Yes.
+\end{proof}
+
+\subsection*{Part (b)}
+Consider an adaptive algorithm which makes the update proportional to the loss. 
+\[
+\Phi_{t + 1} = \Phi^t - \eta \cL \hat{g}_t
+\]
+Is a stationary point of the loss function always a stationary point of the update?
+\begin{proof}
+    Again, an unweighted average equalling zero does not imply the weighted average is zero. 
+\end{proof}
+\end{document}
